@@ -1,0 +1,2656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title id="page-title">7YP3X-L1N3F33D · TX-T3RM1N4L</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* ─────────────────────────────────────────
+   DESIGN TOKENS (7YP3X-L1N3F33D default)
+───────────────────────────────────────── */
+:root {
+  --a1:#e8922a; --a2:#5bc8f5; --a3:#c8a84a;
+  --bg:#0a0807; --gl:rgba(16,12,10,.76); --bd:rgba(255,255,255,.07);
+  --tx:#c4b49a; --d2:#6a5a48; --dm:#2e261c;
+  --ok:#5cbf6a; --er:#d94040; --wn:#e8b840;
+  --cl:#701515; --gw:232,146,42;
+  --r:0px; /* panel radius */
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Space Grotesk',sans-serif;
+}
+
+/* ─────────────────────────────────────────
+   RESET
+───────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--mono);font-size:13px;
+  min-height:100vh;overflow-x:hidden;padding-bottom:60px}
+
+/* ─────────────────────────────────────────
+   STEALTH OVERLAY
+───────────────────────────────────────── */
+#enc-stealth{position:fixed;inset:0;background:#000;z-index:9999;
+  display:none;cursor:pointer;user-select:none;align-items:center;justify-content:center}
+#enc-stealth.on{display:flex}
+#enc-stealth span{font-size:10px;color:#0b0b0b;letter-spacing:.3em;pointer-events:none}
+/* Status LED dot — mirrors encoder status colour when visible */
+#enc-st-led{position:absolute;top:14px;right:14px;width:10px;height:10px;
+  border-radius:50%;opacity:0;transition:background .4s,opacity .4s;pointer-events:none}
+#enc-stealth.on #enc-st-led.vis{opacity:.8}
+
+/* ─────────────────────────────────────────
+   PARTICLE CANVAS BACKGROUND
+   Fixed behind all content — theme-aware
+───────────────────────────────────────── */
+#px-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;width:100%;height:100%}
+
+/* Scanline overlay */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);
+  opacity:.5}
+
+/* ─────────────────────────────────────────
+   GLASS PANEL
+───────────────────────────────────────── */
+.glass{background:var(--gl);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--bd);border-radius:var(--r)}
+.glass-light{background:rgba(255,255,255,.03);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border:1px solid var(--bd)}
+
+/* ─────────────────────────────────────────
+   SETTINGS DRAWER
+───────────────────────────────────────── */
+#sd-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;
+  opacity:0;pointer-events:none;transition:opacity .3s}
+#sd-bg.open{opacity:1;pointer-events:all}
+#sd{position:fixed;top:0;right:-340px;width:min(340px,100vw);height:100%;
+  background:var(--gl);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-left:1px solid var(--bd);z-index:801;overflow-y:auto;
+  display:flex;flex-direction:column;transition:right .3s cubic-bezier(.4,0,.2,1)}
+#sd.open{right:0}
+.sd-hd{padding:18px 20px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.sd-hd-title{font-family:var(--sans);font-size:17px;font-weight:700;letter-spacing:.04em;color:var(--a1)}
+.sd-close{background:transparent;border:1px solid var(--bd);color:var(--d2);
+  width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.sd-close:hover{border-color:var(--er);color:var(--er)}
+.sd-sec{padding:16px 20px;border-bottom:1px solid var(--bd)}
+.sd-sec-title{font-size:9px;font-weight:700;letter-spacing:.3em;color:var(--d2);text-transform:uppercase;margin-bottom:12px}
+.theme-list{display:flex;flex-direction:column;gap:4px}
+.th-row{display:flex;align-items:center;gap:10px;padding:8px 10px;cursor:pointer;
+  border:1px solid transparent;transition:all .15s}
+.th-row:hover{border-color:var(--bd);background:rgba(255,255,255,.03)}
+.th-row.active{border-color:var(--a1);background:rgba(255,255,255,.04)}
+.th-dot{width:28px;height:28px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.15)}
+.th-name{font-size:11px;color:var(--tx)}
+.th-row.active .th-name{color:var(--a1)}
+.sd-info{font-size:10px;color:var(--d2);line-height:1.9;padding:16px 20px}
+.sd-btn{width:100%;padding:10px;font-family:var(--mono);font-size:10px;font-weight:600;
+  letter-spacing:.15em;text-transform:uppercase;border:1px solid;cursor:pointer;
+  background:transparent;transition:all .15s;margin-bottom:6px}
+.sd-btn-r{color:var(--er);border-color:rgba(217,64,64,.4)}
+.sd-btn-r:hover{background:rgba(217,64,64,.1);border-color:var(--er)}
+.sd-btn-a{color:var(--a1);border-color:rgba(232,146,42,.4)}
+.sd-btn-a:hover{background:rgba(232,146,42,.08);border-color:var(--a1)}
+/* Settings input inside drawer — inherits mono font + encoder styling */
+.sp-in{background:rgba(0,0,0,.4);border:1px solid var(--bd);color:var(--tx);
+  font-family:var(--mono);font-size:11px;padding:5px 8px;outline:none;flex:1}
+.sp-in:focus{border-color:var(--a1)}
+
+/* ─────────────────────────────────────────
+   HEADER
+───────────────────────────────────────── */
+header{position:relative;z-index:10}
+.classbar{background:var(--cl);padding:5px 20px;display:flex;align-items:center;justify-content:space-between}
+.classbar span{font-size:9px;font-weight:700;letter-spacing:.3em;color:#fff;font-family:var(--mono)}
+.hdr{padding:14px 24px;display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--bd)}
+.brand{line-height:1}
+.brand-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.12em;
+  color:var(--bg);background:var(--a1);padding:3px 8px;margin-bottom:4px}
+.brand-name{font-family:var(--sans);font-size:22px;font-weight:700;letter-spacing:.06em;color:var(--a1)}
+.brand-sub{font-size:9px;letter-spacing:.22em;color:var(--d2);margin-top:2px}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.status-pill{display:flex;align-items:center;gap:7px;font-size:10px;
+  letter-spacing:.12em;color:var(--d2);padding:5px 10px;border:1px solid var(--bd);background:rgba(0,0,0,.3)}
+.status-dot{width:9px;height:9px;border-radius:50%;background:var(--dm);flex-shrink:0;
+  transition:background .35s,box-shadow .35s}
+@keyframes dotBreath{0%,100%{opacity:.25;transform:scale(.85)}50%{opacity:.8;transform:scale(1.1)}}
+@keyframes dotFast  {0%,100%{transform:scale(1)}50%{transform:scale(1.55)}}
+@keyframes dotThrob {0%,100%{opacity:1}25%{opacity:.2}50%{opacity:1}75%{opacity:.3}}
+.status-dot.idle  {animation:dotBreath 2.8s ease-in-out infinite;background:var(--d2)}
+.status-dot.on    {background:var(--a1);box-shadow:0 0 10px rgba(var(--gw),.9);animation:dotFast .85s ease-in-out infinite}
+.status-dot.crypto{background:var(--a2);box-shadow:0 0 10px rgba(91,200,245,.9);animation:dotFast .6s ease-in-out infinite}
+.status-dot.ok    {background:var(--ok);box-shadow:0 0 8px rgba(92,191,106,.8)}
+.status-dot.err   {background:var(--er);box-shadow:0 0 8px rgba(217,64,64,.8);animation:dotThrob .5s ease-in-out infinite}
+.status-dot.warn  {background:var(--wn);box-shadow:0 0 8px rgba(232,184,64,.7);animation:dotBreath 1.4s ease-in-out infinite}
+#stxt{font-size:10px;letter-spacing:.14em;color:var(--tx);min-width:90px;text-align:left}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.icon-btn{background:transparent;border:1px solid var(--bd);color:var(--d2);
+  width:36px;height:36px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.icon-btn:hover{border-color:var(--a1);color:var(--a1)}
+
+/* ─────────────────────────────────────────
+   TAB BAR
+───────────────────────────────────────── */
+.tab-bar{display:flex;border-bottom:1px solid var(--bd);padding:0 20px;
+  overflow-x:auto;scrollbar-width:none;position:relative;z-index:5}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;padding:12px 20px;border:none;background:transparent;
+  color:var(--d2);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:all .2s;flex-shrink:0}
+.tab-btn:hover{color:var(--tx)}
+.tab-btn.on{color:var(--a1);border-bottom-color:var(--a1)}
+.tab-pane{display:none;position:relative;z-index:2}
+.tab-pane.on{display:block}
+
+/* ─────────────────────────────────────────
+   LAYOUT GRID
+───────────────────────────────────────── */
+.pg{max-width:1080px;margin:0 auto;padding:20px 18px 0;
+  display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pg.w1{grid-template-columns:1fr}
+.fw{grid-column:1/-1}
+
+/* ─────────────────────────────────────────
+   PANELS
+───────────────────────────────────────── */
+.pnl{padding:16px;position:relative}
+.pnl-title{font-size:9px;font-weight:700;letter-spacing:.3em;color:var(--a1);
+  text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;
+  padding-bottom:8px;border-bottom:1px solid var(--bd)}
+.pnl-num{font-size:8px;font-weight:700;color:var(--bg);background:var(--a1);padding:2px 6px;flex-shrink:0}
+.beta-tag{font-size:8px;font-weight:700;background:var(--wn);color:#000;padding:2px 6px;letter-spacing:.08em}
+
+/* ─────────────────────────────────────────
+   DROP ZONE
+───────────────────────────────────────── */
+#dz{border:1px dashed rgba(255,255,255,.12);padding:30px 16px;text-align:center;
+  cursor:pointer;transition:all .2s;background:rgba(255,255,255,.02)}
+#dz:hover,#dz.over{border-color:var(--a1);background:rgba(var(--gw),.06)}
+.dz-icon{font-size:28px;opacity:.35;margin-bottom:8px}
+.dz-primary{font-size:12px;color:var(--tx);margin-bottom:4px}
+.dz-primary b{color:var(--a1);cursor:pointer}
+.dz-primary b:hover{text-decoration:underline}
+.dz-hint{font-size:10px;color:var(--d2)}
+.file-info{display:none;gap:0}
+.fi-row{display:flex;justify-content:space-between;align-items:center;
+  padding:6px 10px;border-bottom:1px solid var(--bd);font-size:10px}
+.fi-row:last-child{border-bottom:none}
+.fi-k{color:var(--d2);letter-spacing:.08em}
+.fi-v{color:var(--a2);word-break:break-all;text-align:right;max-width:70%}
+#fi-input{display:none}
+
+/* ─────────────────────────────────────────
+   FORM CONTROLS
+───────────────────────────────────────── */
+.row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.lbl{font-size:10px;color:var(--d2);min-width:130px;letter-spacing:.06em;flex-shrink:0}
+select,input[type=number],input[type=text],input[type=password]{
+  background:rgba(0,0,0,.4);border:1px solid var(--bd);color:var(--tx);
+  font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none;flex:1;min-width:0;transition:border-color .15s}
+select:focus,input:focus{border-color:var(--a1)}
+input[type=range]{flex:1;min-width:0;accent-color:var(--a1)}
+.rv{font-size:11px;color:var(--a1);min-width:52px;text-align:right;flex-shrink:0}
+
+/* Toggle */
+.tog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;
+  padding:6px 0;border-bottom:1px solid var(--bd)}
+.tog-label{font-size:11px;color:var(--tx)}
+.tog-sub{font-size:9px;color:var(--d2);margin-top:2px}
+.sw{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0}
+.sl{position:absolute;inset:0;background:var(--dm);cursor:pointer;transition:.3s;border:1px solid var(--bd)}
+.sl::before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:var(--d2);transition:.3s}
+input:checked+.sl{background:rgba(var(--gw),.15);border-color:var(--a1)}
+input:checked+.sl::before{transform:translateX(16px);background:var(--a1)}
+
+/* ─────────────────────────────────────────
+   BUTTONS
+───────────────────────────────────────── */
+.btn{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.12em;
+  padding:9px 16px;border:1px solid;cursor:pointer;text-transform:uppercase;
+  background:transparent;transition:all .15s;white-space:nowrap;position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;inset:0;background:currentColor;opacity:0;transition:.15s}
+.btn:hover::after{opacity:.07}
+.btn:active::after{opacity:.15}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn.a{color:var(--a1);border-color:var(--a1);box-shadow:0 0 12px rgba(var(--gw),.2)}
+.btn.a:hover{box-shadow:0 0 20px rgba(var(--gw),.35)}
+.btn.b{color:var(--a2);border-color:var(--a2)}
+.btn.g{color:var(--ok);border-color:var(--ok)}
+.btn.w{color:var(--wn);border-color:var(--wn)}
+.btn.r{color:var(--er);border-color:var(--er)}
+.btn.x{color:var(--d2);border-color:var(--bd)}
+.btn.big{font-size:12px;padding:12px 24px;letter-spacing:.18em}
+.bgrp{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ─────────────────────────────────────────
+   NOTES / CALLOUTS
+───────────────────────────────────────── */
+.note{font-size:10px;color:var(--d2);padding:8px 10px;
+  background:rgba(255,255,255,.025);border-left:2px solid var(--bd);line-height:1.8;margin-top:8px}
+.note .nh{color:var(--a2)}
+.note .nw{color:var(--wn)}
+.note .na{color:var(--a1)}
+.note .ng{color:var(--ok)}
+.warn-box{background:rgba(232,184,64,.06);border:1px solid rgba(232,184,64,.25);
+  padding:10px 12px;font-size:10px;color:var(--wn);line-height:1.8;margin-top:8px;display:none}
+
+/* ─────────────────────────────────────────
+   ENCRYPTION PANEL
+───────────────────────────────────────── */
+#enc-opts{display:none;margin-top:10px}
+.pwd-box{background:rgba(232,184,64,.05);border:1px solid rgba(232,184,64,.2);padding:12px}
+.pwd-title{font-size:9px;font-weight:700;letter-spacing:.2em;color:var(--wn);margin-bottom:8px;text-transform:uppercase}
+.pwd-row{display:flex;gap:6px;flex-wrap:wrap}
+.pwd-row input{flex:1;min-width:150px;font-size:13px;letter-spacing:.04em}
+#enc-result{display:none;margin-top:12px;background:rgba(232,184,64,.06);border:2px solid rgba(232,184,64,.3);padding:14px}
+.enc-result-title{font-size:9px;font-weight:700;letter-spacing:.25em;color:var(--wn);margin-bottom:10px;text-transform:uppercase}
+.enc-field{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.enc-field-key{font-size:9px;letter-spacing:.12em;color:var(--d2);min-width:64px;margin-top:3px;flex-shrink:0;text-transform:uppercase}
+.enc-field-val{flex:1;background:rgba(0,0,0,.4);border:1px solid var(--bd);padding:5px 8px;
+  font-size:10px;color:var(--wn);word-break:break-all;min-width:0}
+.copy-mini{font-size:9px;padding:4px 8px;background:transparent;border:1px solid var(--bd);
+  color:var(--d2);cursor:pointer;font-family:var(--mono);flex-shrink:0;transition:all .15s}
+.copy-mini:hover{border-color:var(--a1);color:var(--a1)}
+.copy-mini.ok{border-color:var(--ok);color:var(--ok)}
+
+/* ─────────────────────────────────────────
+   PROGRESS
+───────────────────────────────────────── */
+#enc-progress{display:none}
+.prog-header{display:flex;justify-content:space-between;font-size:10px;color:var(--d2);margin-bottom:6px}
+.prog-bar{height:3px;background:var(--dm);overflow:hidden;margin-bottom:14px}
+.prog-fill{height:100%;background:var(--a1);width:0%;transition:width .1s;
+  box-shadow:0 0 8px rgba(var(--gw),.6)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--bd)}
+.stat-cell{background:var(--gl);backdrop-filter:blur(10px);padding:12px;text-align:center}
+.stat-val{font-family:var(--sans);font-size:16px;font-weight:700;color:var(--a1);display:block}
+.stat-lbl{font-size:8px;letter-spacing:.18em;color:var(--d2);margin-top:3px;display:block;text-transform:uppercase}
+
+/* ─────────────────────────────────────────
+   COMPRESSION INFO
+───────────────────────────────────────── */
+#comp-info{display:none;margin-top:10px;gap:16px;flex-wrap:wrap}
+.ci-item{display:flex;flex-direction:column;gap:2px;flex:1;min-width:80px;text-align:center;
+  background:rgba(255,255,255,.025);padding:10px}
+.ci-val{font-family:var(--sans);font-size:15px;font-weight:700;color:var(--a1)}
+.ci-lbl{font-size:9px;color:var(--d2);letter-spacing:.12em;text-transform:uppercase}
+
+/* ─────────────────────────────────────────
+   HASH DISPLAY
+───────────────────────────────────────── */
+.hash-box{display:none;background:rgba(0,0,0,.4);border:1px solid var(--bd);padding:10px;margin-top:8px}
+.hash-label{font-size:9px;letter-spacing:.2em;color:var(--a2);margin-bottom:4px}
+.hash-val{font-size:10px;color:var(--tx);word-break:break-all;line-height:1.6}
+
+/* ─────────────────────────────────────────
+   CHUNK MANIFEST
+───────────────────────────────────────── */
+#manifest{display:none}
+.tbl-wrap{max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
+table{width:100%;border-collapse:collapse;font-size:10px}
+th{text-align:left;padding:5px 8px;color:var(--d2);font-size:9px;letter-spacing:.14em;
+  border-bottom:1px solid var(--bd);font-weight:normal;position:sticky;top:0;background:var(--gl)}
+td{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.03)}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ─────────────────────────────────────────
+   SPEED ESTIMATOR
+───────────────────────────────────────── */
+#spd-panel{display:none}
+.preset-grid{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.preset-btn{font-size:9px;padding:5px 10px;border:1px solid var(--bd);background:transparent;
+  color:var(--d2);cursor:pointer;font-family:var(--mono);transition:all .15s;letter-spacing:.06em}
+.preset-btn:hover{border-color:var(--a2);color:var(--a2)}
+.preset-btn.on{border-color:var(--a1);color:var(--a1);background:rgba(var(--gw),.06)}
+.spd-inputs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.spd-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:100px}
+.spd-lbl{font-size:9px;color:var(--d2);letter-spacing:.14em;text-transform:uppercase}
+.spd-summary{background:rgba(0,0,0,.35);border:1px solid var(--bd);padding:12px}
+.spd-row{display:flex;justify-content:space-between;padding:3px 0;
+  border-bottom:1px solid rgba(255,255,255,.03);font-size:10px}
+.spd-row.total{border-bottom:none;padding-top:8px;margin-top:4px}
+.spd-row.total .spd-k{color:var(--tx);font-weight:600}
+.spd-row.total .spd-v{font-family:var(--sans);font-size:14px;font-weight:700;color:var(--a1)}
+.spd-k{color:var(--d2)}.spd-v{color:var(--a2)}
+.spd-big{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);margin-bottom:10px}
+.spd-cell{background:var(--gl);backdrop-filter:blur(10px);padding:10px;text-align:center}
+.spd-big-v{font-family:var(--sans);font-size:14px;font-weight:700;display:block}
+.spd-big-l{font-size:8px;color:var(--d2);letter-spacing:.14em;display:block;margin-top:2px;text-transform:uppercase}
+
+/* ─────────────────────────────────────────
+   HID OUTPUT
+───────────────────────────────────────── */
+#hid-panel{display:none}
+.hid-format{font-size:9px;color:var(--a3);padding:8px 10px;
+  background:rgba(200,168,74,.05);border:1px solid rgba(200,168,74,.2);margin-bottom:10px;line-height:1.9}
+.hid-sample{background:rgba(0,0,0,.5);border:1px solid var(--bd);padding:8px;
+  font-size:9px;word-break:break-all;line-height:1.7;max-height:56px;overflow-y:auto;
+  color:var(--d2);margin-bottom:10px}
+
+/* ─────────────────────────────────────────
+   SELF-TEST
+───────────────────────────────────────── */
+#selftest-result{display:none;margin-top:8px;padding:8px 10px;font-size:10px;line-height:1.8}
+.test-ok{color:var(--ok);border:1px solid rgba(92,191,106,.3);background:rgba(92,191,106,.05)}
+.test-fail{color:var(--er);border:1px solid rgba(217,64,64,.3);background:rgba(217,64,64,.05)}
+
+/* ─────────────────────────────────────────
+   LOG
+───────────────────────────────────────── */
+.log-box{background:rgba(0,0,0,.5);border:1px solid var(--bd);padding:9px;
+  height:130px;overflow-y:auto;font-size:10px;line-height:1.9;
+  scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
+.log-box::-webkit-scrollbar{width:3px}
+.log-box::-webkit-scrollbar-thumb{background:var(--bd)}
+.l-ok{color:var(--ok)}.l-e{color:var(--er)}.l-w{color:var(--wn)}.l-i{color:var(--a2)}.l-d{color:var(--dm)}
+
+/* ─────────────────────────────────────────
+   DECODE TAB
+───────────────────────────────────────── */
+.status-card{padding:14px 16px;margin-bottom:0;position:relative}
+.status-card::before{content:'STATUS';position:absolute;top:-1px;left:16px;
+  font-size:8px;font-weight:700;letter-spacing:.3em;color:var(--bg);background:var(--a1);padding:2px 7px}
+.status-main{font-size:13px;letter-spacing:.5px;margin-top:4px;line-height:1.4}
+.status-detail{font-size:10px;color:var(--d2);margin-top:4px;line-height:1.6}
+.status-bar{height:4px;background:var(--dm);margin-top:10px;overflow:hidden}
+.status-fill{height:100%;background:var(--a1);width:0%;transition:width .3s;box-shadow:0 0 8px rgba(var(--gw),.5)}
+.status-pct{font-size:10px;color:var(--d2);margin-top:4px;text-align:right}
+
+.chunk-map-wrap{margin:10px 0}
+.chunk-map{display:flex;flex-wrap:wrap;gap:2px}
+.cm{width:11px;height:11px;background:var(--dm);border-radius:1px;
+  transition:background .2s;cursor:default;flex-shrink:0}
+.cm.got{background:var(--ok)}
+.cm.fail{background:var(--er)}
+.cm:hover{opacity:.7}
+
+.dec-input-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd);margin-bottom:10px}
+.dec-tab{font-size:10px;font-family:var(--mono);padding:7px 14px;border:none;
+  background:transparent;color:var(--d2);cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .15s;letter-spacing:.1em;text-transform:uppercase}
+.dec-tab.on{color:var(--a1);border-bottom-color:var(--a1)}
+.dec-pane{display:none}
+.dec-pane.on{display:block}
+
+textarea{width:100%;height:82px;background:rgba(0,0,0,.5);border:1px solid var(--bd);
+  color:var(--tx);font-family:var(--mono);font-size:11px;padding:8px;resize:vertical;
+  outline:none;transition:border-color .15s}
+textarea:focus{border-color:var(--a1)}
+textarea::placeholder{color:var(--dm)}
+
+.pwd-prompt{display:none;background:rgba(232,184,64,.05);border:2px solid rgba(232,184,64,.25);padding:14px;margin-bottom:10px}
+.pwd-prompt-title{font-size:9px;font-weight:700;letter-spacing:.2em;color:var(--wn);margin-bottom:8px;text-transform:uppercase}
+
+/* ─────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────── */
+footer{text-align:center;padding:14px;font-size:9px;color:var(--dm);
+  border-top:1px solid var(--bd);margin-top:20px;letter-spacing:.15em;position:relative;z-index:2}
+
+/* ─────────────────────────────────────────
+   SCROLLBARS
+───────────────────────────────────────── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bd)}
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media(max-width:720px){
+  .pg{grid-template-columns:1fr;padding:12px 12px 0;gap:10px}
+  .fw{grid-column:1}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .spd-big{grid-template-columns:repeat(2,1fr)}
+  .spd-inputs{flex-direction:column}
+  .hdr{padding:12px 14px}
+  .brand-name{font-size:18px}
+  .classbar .cls-r{display:none}
+  .tog-row{flex-wrap:wrap}
+  .row{flex-direction:column;align-items:flex-start}
+  .lbl{min-width:unset}
+  select,input[type=range],input[type=number],input[type=text]{width:100%}
+  .rv{width:auto}
+  .bgrp{gap:5px}
+  .btn{padding:8px 12px}
+}
+@media(max-width:720px){
+  .bgrp .btn{font-size:10px;padding:9px 8px;letter-spacing:.06em}
+}
+@media(max-width:480px){
+  body{font-size:12px}
+  .hdr{padding:10px 12px}
+  .brand-name{font-size:15px}
+  .tab-btn{padding:10px 12px;font-size:10px;letter-spacing:.1em}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .bgrp{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .bgrp .btn{flex:none;width:100%;font-size:9px;padding:9px 6px;letter-spacing:.04em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+  .preset-grid .preset-btn{font-size:8px;padding:4px 7px}
+  .chunk-map .cm{width:9px;height:9px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── STEALTH OVERLAY ── -->
+<div id="enc-stealth" onclick="encStOff()">
+  <span id="enc-st-led"></span>
+  <span>◈</span>
+</div>
+
+<!-- ── PARTICLE CANVAS BACKGROUND ── -->
+<canvas id="px-canvas"></canvas>
+
+<!-- ── SETTINGS DRAWER ── -->
+<div id="sd-bg" onclick="closeSd()"></div>
+<div id="sd">
+  <div class="sd-hd">
+    <span class="sd-hd-title">⚙ SETTINGS</span>
+    <button class="sd-close" onclick="closeSd()">✕</button>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-sec-title">Interface Theme</div>
+    <div class="theme-list" id="theme-list"></div>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-sec-title">Privacy Screen</div>
+    <div class="tog-row" style="padding:6px 0 10px">
+      <div><div class="tog-label" style="font-size:11px">Stealth overlay</div>
+        <div class="tog-sub">Key combo covers the page with a black screen · on mobile: triple-tap any blank area</div></div>
+      <label class="sw"><input type="checkbox" id="enc-s-stealth" onchange="encSaveStealth()"><span class="sl"></span></label>
+    </div>
+    <div style="font-size:9px;color:var(--d2);margin-bottom:8px">Mobile: long-press the header bar to toggle stealth</div>
+    <div id="enc-s-combo-row" style="display:none">
+      <div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">
+        <span class="lbl" style="white-space:nowrap;min-width:60px">Key combo</span>
+        <input type="text" id="enc-s-combo" class="sp-in" readonly
+          style="cursor:pointer;flex:1;min-width:120px;font-size:11px"
+          onclick="encCapCombo(this)" placeholder="Ctrl+Shift+H" autocomplete="off">
+        <button class="btn x" style="font-size:9px;padding:6px 10px"
+          onclick="$('enc-s-combo').value='Ctrl+Shift+H';encSaveStealth()">RESET</button>
+      </div>
+    </div>
+    <div class="tog-row" style="padding:6px 0 6px;border-top:1px solid var(--bd);margin-top:4px">
+      <div><div class="tog-label" style="font-size:11px">Status LED on black screen</div>
+        <div class="tog-sub">Tiny dot mirrors active status — lets you monitor without revealing display</div></div>
+      <label class="sw"><input type="checkbox" id="enc-s-led" onchange="encSaveStealth()"><span class="sl"></span></label>
+    </div>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-sec-title">Display</div>
+    <div class="tog-row" style="padding:6px 0 6px">
+      <div><div class="tog-label" style="font-size:11px">Background animations</div>
+        <div class="tog-sub">Particle canvas — disable on low-end hardware or for focus</div></div>
+      <label class="sw"><input type="checkbox" id="enc-s-anim" onchange="encSaveAnim()" checked><span class="sl"></span></label>
+    </div>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-sec-title">Storage &amp; Data</div>
+    <button class="sd-btn sd-btn-r" onclick="clearAllData()">⊘ CLEAR ALL TRANSFER DATA</button>
+    <button class="sd-btn sd-btn-a" onclick="exportSettings()">⬇ EXPORT SETTINGS</button>
+    <div class="note" style="margin-top:4px">
+      <span class="na">CLEAR ALL</span> removes all IndexedDB chunks and transfer state.<br>
+      <span class="nh">Settings</span> (theme, defaults) are <b>kept</b> in localStorage.
+    </div>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-sec-title">Error Handling Coverage</div>
+    <div class="note" style="margin-top:0;border-left-color:var(--ok)">
+      <span class="ng">■</span> Worker pipeline — all CPU ops off main thread (no freezes)<br>
+      <span class="ng">■</span> Per-chunk SHA hash verified on receipt<br>
+      <span class="ng">■</span> Final file hash verified before download<br>
+      <span class="ng">■</span> Sequence validation before assembly<br>
+      <span class="ng">■</span> AES-GCM auth tag detects wrong password or corruption<br>
+      <span class="ng">■</span> IndexedDB quota/permission errors caught<br>
+      <span class="ng">■</span> Decompression errors surfaced with detail<br>
+      <span class="ng">■</span> API availability checked at startup<br>
+      <span class="ng">■</span> Cross-transfer chunk mismatch detected<br>
+      <span class="ng">■</span> Empty/malformed chunk data caught before storage
+    </div>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-sec-title">Protocol</div>
+    <div class="note" style="margin-top:0">
+      <span class="na">7YP3X-L1N3F33D PROTOCOL FORMAT</span><br>
+      <code style="color:var(--a2);font-size:9px;word-break:break-all">ibv1;{idx};{total};{chunkHash};{fileHash};{comp};{compAlgo};{enc};{salt};{iv};{hashAlgo};{hexdata};{nameHex}</code><br><br>
+      13 fixed fields · hex+semicolon only · zero shift keys<br>
+      All previous formats <span style="color:var(--d2)">not supported</span> — re-encode with this version.
+    </div>
+  </div>
+
+  <div class="sd-info">
+    7YP3X-L1N3F33D v4.0 · TX-T3RM1N4L<br>
+    Web Worker pipeline · AES-256-GCM · PBKDF2<br>
+    CompressionStream · IndexedDB<br><br>
+    <span style="color:var(--dm)">Flipper Zero · NetHunter · Home Lab · CTF · Red Team</span>
+  </div>
+</div>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="classbar">
+    <span>■ HID-KBD FILE TRANSFER PROTOCOL — TX-T3RM1N4L v4.0</span>
+    <span id="clk" class="cls-r"></span>
+  </div>
+  <div class="hdr glass-light">
+    <div class="brand">
+      <div><span class="brand-tag" id="brand-tag">7YP3X-L1N3F33D</span></div>
+      <div class="brand-name">TX-T3RM1N4L</div>
+      <div class="brand-sub">HID · ENCODE · ENCRYPT · COMPRESS · INJECT</div>
+    </div>
+    <div class="hdr-right">
+      <div class="status-pill glass-light">
+        <span class="status-dot" id="sdot"></span>
+        <span id="stxt">STANDBY</span>
+      </div>
+      <button class="icon-btn" onclick="openSd()" title="Settings">⚙</button>
+    </div>
+  </div>
+</header>
+
+<!-- ── TAB BAR ── -->
+<div class="tab-bar">
+  <button class="tab-btn on" onclick="switchTab('enc')" id="ttenc">▲ ENCODE</button>
+  <button class="tab-btn" onclick="switchTab('dec')" id="ttdec">▼ DECODE</button>
+  <button class="tab-btn" onclick="switchTab('tools')" id="tttools">◈ TOOLS</button>
+</div>
+
+<!-- ════════════════════════════════════════
+     ENCODE TAB
+════════════════════════════════════════ -->
+<div class="tab-pane on" id="enc-tab">
+<div class="pg">
+
+  <!-- 01 File -->
+  <div class="pnl glass fw">
+    <div class="pnl-title"><span class="pnl-num">01</span>FILE SELECTION</div>
+    <div id="dz">
+      <input type="file" id="fi-input">
+      <div class="dz-icon">◈</div>
+      <div class="dz-primary">Drop file here · or <b onclick="$('fi-input').click();event.stopPropagation()">browse</b></div>
+      <div class="dz-hint">Any format · Any size · Android drag &amp; drop supported</div>
+    </div>
+    <div class="file-info" id="file-info">
+      <div class="fi-row"><span class="fi-k">NAME</span><span class="fi-v" id="fi-n">—</span></div>
+      <div class="fi-row"><span class="fi-k">SIZE</span><span class="fi-v" id="fi-s">—</span></div>
+      <div class="fi-row"><span class="fi-k">TYPE</span><span class="fi-v" id="fi-t">—</span></div>
+      <div class="fi-row"><span class="fi-k">MODIFIED</span><span class="fi-v" id="fi-d">—</span></div>
+    </div>
+    <div class="warn-box" id="precomp-warn">
+      ⚠ Pre-compressed format detected (.zip/.jpg/.mp4 etc).
+      Compression is safe but will provide negligible size reduction — consider leaving it off.
+    </div>
+  </div>
+
+  <!-- 02 Config + 03 Compression -->
+  <div class="pnl glass" id="pnl-02">
+    <div class="pnl-title"><span class="pnl-num">02</span>ENCODING CONFIG</div>
+    <div class="row">
+      <span class="lbl">Chunk Size</span>
+      <input type="range" id="csl" min="512" max="16384" step="256" value="2048">
+      <span class="rv" id="csv">2 KB</span>
+    </div>
+    <div class="row">
+      <span class="lbl">Hash Algorithm</span>
+      <select id="halg">
+        <option value="sha256">SHA-256 (fastest)</option>
+        <option value="sha384">SHA-384</option>
+        <option value="sha512">SHA-512 (strongest)</option>
+      </select>
+    </div>
+    <div class="row">
+      <span class="lbl">Output Format</span>
+      <select id="omode">
+        <option value="hid">HID-Safe (ibv1 · recommended)</option>
+        <option value="json">Full JSON</option>
+      </select>
+    </div>
+    <div class="note"><span class="na">ibv1</span> uses only <code style="color:var(--a1)">0-9 a-f ;</code>. Zero shift keys on any keyboard layout. JSON is for file-based transfer only.</div>
+  </div>
+
+  <div class="pnl glass" id="pnl-03">
+    <div class="pnl-title"><span class="pnl-num">03</span>COMPRESSION <span style="font-size:9px;color:var(--d2);font-weight:normal;letter-spacing:normal">(off by default)</span></div>
+    <div class="tog-row">
+      <div><div class="tog-label">Enable compression</div>
+        <div class="tog-sub">Deflate-raw, Gzip, or Deflate/zlib</div></div>
+      <label class="sw"><input type="checkbox" id="ctog"><span class="sl"></span></label>
+    </div>
+    <div id="calg-row" style="opacity:.4">
+      <div class="row">
+        <span class="lbl">Algorithm</span>
+        <select id="calg">
+          <option value="deflate-raw">Deflate-Raw (smallest)</option>
+          <option value="gzip">Gzip</option>
+          <option value="deflate">Deflate/zlib</option>
+        </select>
+      </div>
+    </div>
+    <div id="comp-info" style="gap:12px;flex-wrap:wrap;margin-top:8px">
+      <div class="ci-item"><span class="ci-val" id="ci-o">—</span><span class="ci-lbl">Original</span></div>
+      <div class="ci-item"><span class="ci-val" id="ci-c">—</span><span class="ci-lbl">Compressed</span></div>
+      <div class="ci-item"><span class="ci-val" id="ci-r" style="color:var(--a3)">—</span><span class="ci-lbl">Saved</span></div>
+    </div>
+    <div class="note" style="margin-top:8px">
+      <span class="na">SAFE ON ALL FILES</span> — file hash is computed <em>before</em> compression.
+      Hash mismatch = loudly fails. Never silent corruption.
+    </div>
+  </div>
+
+  <!-- 04 Encryption -->
+  <div class="pnl glass fw" id="pnl-04">
+    <div class="pnl-title"><span class="pnl-num">04</span>ENCRYPTION <span class="beta-tag">BETA</span></div>
+    <div class="tog-row">
+      <div><div class="tog-label">Enable AES-256-GCM encryption</div>
+        <div class="tog-sub">PBKDF2 key derivation · 210,000 iterations · random salt + IV per encode</div></div>
+      <label class="sw"><input type="checkbox" id="etog"><span class="sl"></span></label>
+    </div>
+    <div id="enc-opts">
+      <div class="pwd-box">
+        <div class="pwd-title">⚠ Set password before encoding — not stored in transfer</div>
+        <div class="pwd-row">
+          <input type="password" id="enc-pwd" placeholder="Enter password or click Generate" autocomplete="off" spellcheck="false"><button type="button" class="btn x" style="font-size:9px;padding:6px 10px;flex-shrink:0" onclick="togglePwdVis('enc-pwd',this)" id="enc-pwd-eye">SHOW</button>
+          <button type="button" class="btn x" style="font-size:9px;padding:6px 10px;flex-shrink:0"
+            onclick="var f=$('enc-pwd');f.type=f.type==='password'?'text':'password';this.textContent=f.type==='password'?'SHOW':'HIDE'">SHOW</button>
+          <button class="btn w" onclick="genPwd()" style="flex-shrink:0">⟳ GENERATE</button>
+        </div>
+        <div class="note" style="margin-top:8px">
+          <span class="nw">Password must be shared with the decoder operator.</span>
+          Salt and IV are embedded in every chunk automatically.
+        </div>
+      </div>
+    </div>
+    <div id="enc-result">
+      <div class="enc-result-title">⚠ SAVE NOW — FILE UNRECOVERABLE WITHOUT THIS PASSWORD</div>
+      <div class="enc-field">
+        <span class="enc-field-key">PASSWORD</span>
+        <span class="enc-field-val" id="er-pwd">—</span>
+        <button class="copy-mini" onclick="copyField('er-pwd',this)">COPY</button>
+      </div>
+      <div class="enc-field">
+        <span class="enc-field-key">SALT</span>
+        <span class="enc-field-val" id="er-salt">—</span>
+        <button class="copy-mini" onclick="copyField('er-salt',this)">COPY</button>
+      </div>
+      <div class="enc-field">
+        <span class="enc-field-key">IV</span>
+        <span class="enc-field-val" id="er-iv">—</span>
+        <button class="copy-mini" onclick="copyField('er-iv',this)">COPY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 Encode Button -->
+  <div class="pnl glass fw" style="text-align:center">
+    <div class="bgrp" style="justify-content:center;margin-bottom:10px">
+      <button class="btn a big" id="enc-btn" disabled>▶ ENCODE FILE</button>
+      <button class="btn x" onclick="resetEncode()">⊘ RESET</button>
+    </div>
+    <div id="enc-progress">
+      <div class="prog-header">
+        <span id="prog-lbl">Processing...</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+      <div class="stat-grid" id="stat-grid" style="display:none">
+        <div class="stat-cell"><span class="stat-val" id="st-chunks">—</span><span class="stat-lbl">Chunks</span></div>
+        <div class="stat-cell"><span class="stat-val" id="st-size">—</span><span class="stat-lbl">Final Size</span></div>
+        <div class="stat-cell"><span class="stat-val" id="st-chars">—</span><span class="stat-lbl">Total Chars</span></div>
+        <div class="stat-cell"><span class="stat-val" id="st-chsz">—</span><span class="stat-lbl">Avg Chunk</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 Hashes + 07 Manifest (shown after encode) -->
+  <div class="pnl glass" id="hash-pnl" style="display:none">
+    <div class="pnl-title"><span class="pnl-num">06</span>INTEGRITY HASHES</div>
+    <div class="hash-box" id="hash-box" style="display:block">
+      <div class="hash-label" id="hash-algo-lbl">FILE HASH (SHA-256)</div>
+      <div class="hash-val" id="hash-val">—</div>
+    </div>
+    <div id="comp-info-post" style="display:none;margin-top:8px;gap:10px;flex-wrap:wrap">
+      <div class="ci-item"><span class="ci-val" id="cip-o">—</span><span class="ci-lbl">Original</span></div>
+      <div class="ci-item"><span class="ci-val" id="cip-c">—</span><span class="ci-lbl">Compressed</span></div>
+      <div class="ci-item"><span class="ci-val" id="cip-r" style="color:var(--a3)">—</span><span class="ci-lbl">Saved</span></div>
+    </div>
+  </div>
+
+  <div class="pnl glass" id="manifest" style="display:none">
+    <div class="pnl-title"><span class="pnl-num">07</span>CHUNK MANIFEST</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>RANGE</th><th class="hide-sm">SIZE</th><th>HID LEN</th><th>HASH</th></tr></thead>
+        <tbody id="manifest-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 08 Speed Estimator -->
+  <div class="pnl glass fw" id="spd-panel" style="display:none">
+    <div class="pnl-title"><span class="pnl-num">08</span>TRANSFER SPEED ESTIMATOR</div>
+    <div class="preset-grid">
+      <button class="preset-btn on" onclick="setPreset('fd')" id="pr-fd">Flipper (safe)</button>
+      <button class="preset-btn" onclick="setPreset('ff')" id="pr-ff">Flipper (fast)</button>
+      <button class="preset-btn" onclick="setPreset('ns')" id="pr-ns">NetHunter (safe)</button>
+      <button class="preset-btn" onclick="setPreset('nf')" id="pr-nf">NetHunter (fast)</button>
+      <button class="preset-btn" onclick="setPreset('cu')" id="pr-cu">Custom</button>
+    </div>
+    <div class="spd-inputs">
+      <div class="spd-field"><span class="spd-lbl">Chars / sec</span><input type="number" id="cps" value="300" min="10" max="9999" oninput="recalcSpd()"></div>
+      <div class="spd-field"><span class="spd-lbl">Delay / chunk (ms)</span><input type="number" id="dms" value="120" min="0" max="5000" oninput="recalcSpd()"></div>
+      <div class="spd-field"><span class="spd-lbl">Overhead / chunk (s)</span><input type="number" id="ovs" value="0" min="0" max="10" step="0.1" oninput="recalcSpd()"></div>
+    </div>
+    <div class="spd-big">
+      <div class="spd-cell"><span class="spd-big-v" id="sb-ch" style="color:var(--a2)">—</span><span class="spd-big-l">Total chars</span></div>
+      <div class="spd-cell"><span class="spd-big-v" id="sb-tm" style="color:var(--a1)">—</span><span class="spd-big-l">Est. time</span></div>
+      <div class="spd-cell"><span class="spd-big-v" id="sb-pc" style="color:var(--a3)">—</span><span class="spd-big-l">Avg chars/chunk</span></div>
+    </div>
+    <div class="spd-summary">
+      <div class="spd-row"><span class="spd-k">Typing at <span id="sb-cps">—</span> c/s</span><span class="spd-v" id="sb-ty">—</span></div>
+      <div class="spd-row"><span class="spd-k">Delay (<span id="sb-cn">—</span> chunks × <span id="sb-dl">—</span>ms)</span><span class="spd-v" id="sb-dt">—</span></div>
+      <div class="spd-row"><span class="spd-k">Overhead (<span id="sb-on">—</span> × <span id="sb-os">—</span>s)</span><span class="spd-v" id="sb-ot">—</span></div>
+      <div class="spd-row total"><span class="spd-k">TOTAL ESTIMATED</span><span class="spd-v" id="sb-tot">—</span></div>
+    </div>
+  </div>
+
+  <!-- 09 HID Output -->
+  <div class="pnl glass fw" id="hid-panel" style="display:none">
+    <div class="pnl-title"><span class="pnl-num">09</span>HID TRANSFER PACKAGE</div>
+    <div class="hid-format">
+      ◈ Format: <code style="color:var(--a1)">ibv1;{idx};{total};{chunkHash};{fileHash};{comp};{compAlgo};{enc};{salt};{iv};{hashAlgo};{hexdata};{nameHex}</code><br>
+      Characters: <code style="color:var(--a1)">0-9 a-f ;</code> only — zero shift keys on any keyboard layout
+    </div>
+    <div id="hid-eta" style="display:none;font-size:10px;color:var(--a1);background:rgba(var(--gw),.06);
+      border:1px solid rgba(var(--gw),.2);padding:7px 10px;margin-bottom:10px;letter-spacing:.05em">
+      ⏱ ETA: <span id="eta-val">—</span>
+    </div>
+    <div style="font-size:9px;color:var(--d2);margin-bottom:3px">SAMPLE — CHUNK 0:</div>
+    <div class="hid-sample" id="hid-sample">—</div>
+    <div class="bgrp" style="margin-bottom:10px">
+      <button class="btn a" id="dl-hid">⬇ HID STRINGS (.txt)</button>
+      <button class="btn b" id="dl-duck">⬇ DUCKYSCRIPT (.txt)</button>
+      <button class="btn w" id="dl-json">⬇ FULL JSON (.json)</button>
+      <button class="btn x" id="dl-zip">⬇ ZIP ARCHIVE</button>
+    </div>
+    <div class="note">
+      <span style="color:var(--a3)">FLIPPER ZERO</span> → DuckyScript .txt to SD card → BadUSB app → decoder focused → run<br>
+      <span style="color:var(--a2)">NETHUNTER</span> → HID Strings .txt → HID Attack app · WPM must match estimator preset<br>
+      <span style="color:var(--a1)">CLIENT DECODER</span> → decoder.html open on target · paste textarea focused before injection<br>
+      <span style="color:var(--d2)">Flipper sweet spot: 2–7 KB HID strings per chunk (auto-set on file drop)</span>
+    </div>
+  </div>
+
+  <!-- 10 CHUNK RE-EXPORT — for re-injecting corrupted/missing chunks -->
+  <div class="pnl glass fw" id="reexport-panel" style="display:none">
+    <div class="pnl-title"><span class="pnl-num">10</span>CHUNK RE-EXPORT <span style="font-size:9px;color:var(--d2);font-weight:normal;letter-spacing:normal">— re-inject specific chunks after corruption</span></div>
+    <div class="note" style="margin-bottom:10px">
+      <span class="na">HOW TO USE:</span> The decoder log tells you which chunk numbers failed (e.g. <code style="color:var(--a1)">#0010, #2001</code>).
+      Type those numbers below — comma-separated, ranges with a dash — and export just those chunks for re-injection.
+      <br><span class="nh">Examples:</span> <code style="color:var(--a2)">10</code> · <code style="color:var(--a2)">0,5,10</code> · <code style="color:var(--a2)">10-20</code> · <code style="color:var(--a2)">0-5,100,200-205</code>
+    </div>
+    <div class="row">
+      <span class="lbl">Chunk numbers</span>
+      <input type="text" id="reex-input" placeholder="e.g. 10  or  0,5,10  or  10-20  or  0-5,100,200-205"
+        style="font-size:12px;letter-spacing:.03em" autocomplete="off" spellcheck="false">
+    </div>
+    <div id="reex-preview" style="font-size:10px;color:var(--d2);margin:6px 0 10px;min-height:16px"></div>
+    <div class="bgrp">
+      <button class="btn a" onclick="reexport('hid')">⬇ RE-INJECT HID (.txt)</button>
+      <button class="btn b" onclick="reexport('duck')">⬇ RE-INJECT DUCKYSCRIPT</button>
+      <button class="btn x" onclick="previewReex()">◈ PREVIEW SELECTION</button>
+    </div>
+    <div id="reex-result" style="display:none;margin-top:10px;padding:8px;background:rgba(0,0,0,.4);border:1px solid var(--bd);font-size:10px;color:var(--d2);line-height:1.9"></div>
+  </div>
+
+  <!-- 11 Log -->
+  <div class="pnl glass fw">
+    <div class="pnl-title"><span class="pnl-num">11</span>ENCODE LOG</div>
+    <div class="log-box" id="elog"><span class="l-d">// TX-T3RM1N4L v4.0 — ready.</span></div>
+  </div>
+
+</div><!-- /pg -->
+</div><!-- /enc-tab -->
+
+<!-- ════════════════════════════════════════
+     DECODE TAB
+════════════════════════════════════════ -->
+<div class="tab-pane" id="dec-tab">
+<div class="pg">
+
+  <!-- Status -->
+  <div class="pnl glass fw">
+    <div class="status-card">
+      <div class="status-main" id="d-main"><span style="color:var(--wn)">◉ WAITING FOR CHUNKS</span></div>
+      <div class="status-detail" id="d-detail">No active transfer. Load files or paste chunk strings.</div>
+      <div class="status-bar"><div class="status-fill" id="d-fill"></div></div>
+      <div class="status-pct" id="d-pct" style="display:none">0 / 0</div>
+    </div>
+    <!-- Chunk map -->
+    <div class="chunk-map-wrap" id="d-mapwrap" style="display:none">
+      <div style="font-size:9px;color:var(--d2);margin-bottom:4px;letter-spacing:.14em">CHUNK MAP — hover for index</div>
+      <div class="chunk-map" id="d-map"></div>
+    </div>
+  </div>
+
+  <!-- Transfer info (post first chunk) -->
+  <div class="pnl glass fw" id="d-tinfo" style="display:none">
+    <div class="pnl-title"><span class="pnl-num">◈</span>ACTIVE TRANSFER</div>
+    <div style="display:flex;gap:0;flex-wrap:wrap">
+      <div class="fi-row" style="flex:1;min-width:180px"><span class="fi-k">FILE</span><span class="fi-v" id="d-fn">—</span></div>
+      <div class="fi-row" style="flex:1;min-width:100px"><span class="fi-k">CHUNKS</span><span class="fi-v" id="d-cn">0/0</span></div>
+      <div class="fi-row" style="flex:1;min-width:100px"><span class="fi-k">COMPRESSED</span><span class="fi-v" id="d-comp">NO</span></div>
+      <div class="fi-row" style="flex:1;min-width:100px"><span class="fi-k">ENCRYPTED</span><span class="fi-v" id="d-enc">NO</span></div>
+      <div class="fi-row" style="flex:1;min-width:100px"><span class="fi-k">HASH</span><span class="fi-v" id="d-hash-algo">—</span></div>
+    </div>
+  </div>
+
+  <!-- Password prompt (shows when encrypted) -->
+  <div class="pwd-prompt glass fw" id="d-pwdbox">
+    <div class="pwd-prompt-title">⚠ ENCRYPTED TRANSFER — ENTER DECRYPTION PASSWORD</div>
+    <div class="row" style="flex-wrap:nowrap">
+      <input type="password" id="d-pwd" placeholder="Decryption password" autocomplete="off" spellcheck="false" style="flex:1"><button type="button" class="btn x" style="font-size:9px;padding:6px 10px;flex-shrink:0" onclick="togglePwdVis('d-pwd',this)">SHOW</button>
+      <button type="button" class="btn x" style="font-size:9px;padding:6px 10px;flex-shrink:0"
+        onclick="var f=$('d-pwd');f.type=f.type==='password'?'text':'password';this.textContent=f.type==='password'?'SHOW':'HIDE'">SHOW</button>
+      <button class="btn w" onclick="dSetPwd()" style="flex-shrink:0">CONFIRM</button>
+    </div>
+    <div id="d-pwd-status" style="font-size:10px;color:var(--d2);margin-top:6px"></div>
+  </div>
+
+  <!-- Input methods -->
+  <div class="pnl glass fw">
+    <div class="pnl-title"><span class="pnl-num">01</span>INPUT</div>
+    <div class="dec-input-tabs">
+      <button class="dec-tab on" onclick="switchDecTab('file')" id="dti-file">📁 FILES</button>
+      <button class="dec-tab" onclick="switchDecTab('paste')" id="dti-paste">📋 PASTE / INJECT</button>
+    </div>
+    <div class="dec-pane on" id="dtp-file">
+      <input type="file" id="d-fs" multiple accept=".chunk,.json,.txt"
+        style="display:block;width:100%;padding:10px;background:rgba(0,0,0,.4);border:1px dashed rgba(255,255,255,.12);color:var(--d2);font-family:var(--mono);font-size:11px;cursor:pointer;margin-bottom:8px">
+      <button class="btn a" onclick="dDoFiles()">LOAD SELECTED FILES</button>
+      <div class="note" style="margin-top:8px">
+        <span class="nh">Multi-select:</span> hold Ctrl/Shift for multiple .chunk files.
+        Load the full _transfer.json to import all chunks at once.
+      </div>
+    </div>
+    <div class="dec-pane" id="dtp-paste">
+      <textarea id="d-paste" placeholder="Paste ibv1 chunk string(s) here.&#10;&#10;DuckyScript injection: keep this textarea focused.&#10;Press ENTER or click Process — each ibv1;... line is processed immediately.&#10;&#10;Also accepts full JSON transfer files."></textarea>
+      <div class="bgrp" style="margin-top:7px">
+        <button class="btn a" onclick="dDoPaste()">PROCESS</button>
+        <button class="btn x" onclick="$('d-paste').value=''">CLEAR</button>
+      </div>
+      <div class="note" style="margin-top:8px">
+        <span class="na">AUTO-INJECT:</span> Focus this textarea before running DuckyScript.
+        Each chunk is processed as it arrives — no button click needed.
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="pnl glass fw">
+    <div class="pnl-title"><span class="pnl-num">02</span>ACTIONS</div>
+    <div class="bgrp">
+      <button class="btn a" id="d-abtn" onclick="dAssemble()" disabled>▶ ASSEMBLE &amp; DOWNLOAD</button>
+      <button class="btn b" id="d-vbtn" onclick="dReVerify()" disabled>⟳ RE-VERIFY ALL</button>
+      <button class="btn w" id="d-mbtn" onclick="dDlMiss()" disabled>⬇ EXPORT MISSING</button>
+      <button class="btn r" onclick="dClear()">⊘ CLEAR TRANSFER</button>
+    </div>
+    <div id="d-assemble-progress" style="display:none;margin-top:10px">
+      <div class="prog-header"><span id="d-prog-lbl">Assembling...</span><span id="d-prog-pct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="d-prog-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="pnl glass fw">
+    <div class="pnl-title"><span class="pnl-num">03</span>DECODE LOG</div>
+    <div class="log-box" id="dlog"><span class="l-d">// Decode mode ready.</span></div>
+  </div>
+
+</div><!-- /pg -->
+</div><!-- /dec-tab -->
+
+<!-- ════════════════════════════════════════
+     TOOLS TAB
+════════════════════════════════════════ -->
+<div class="tab-pane" id="tools-tab">
+<div class="pg w1">
+
+  <div class="pnl glass">
+    <div class="pnl-title"><span class="pnl-num">◈</span>PIPELINE SELF-TEST</div>
+    <div class="note" style="margin-top:0">
+      Encodes and decodes a synthetic test payload through the full pipeline.
+      Verifies: chunking, re-assembly, hash verification, compression and encryption round-trips.
+      Run this before injecting anything to confirm the pipeline is working.
+    </div>
+    <div class="bgrp" style="margin-top:12px">
+      <button class="btn a" onclick="runSelfTest(false)">▶ TEST (no encryption)</button>
+      <button class="btn w" onclick="runSelfTest(true)">▶ TEST (with encryption)</button>
+    </div>
+    <div id="selftest-result" style="display:none;margin-top:10px;padding:10px;font-size:10px;line-height:2"></div>
+  </div>
+
+  <div class="pnl glass">
+    <div class="pnl-title"><span class="pnl-num">◈</span>FORMAT REFERENCE</div>
+    <div class="note" style="margin-top:0;font-size:10px">
+      <span class="na">7YP3X-L1N3F33D v1 (ibv1)</span><br>
+      <code style="color:var(--a2);font-size:9px;word-break:break-all">ibv1;{idx};{total};{chunkHash};{fileHash};{comp};{compAlgo};{enc};{salt};{iv};{hashAlgo};{hexdata};{nameHex}</code>
+      <br><br>
+      <b style="color:var(--tx)">Field breakdown:</b><br>
+      <span style="color:var(--a2)">ibv1</span> — protocol marker<br>
+      <span style="color:var(--a2)">idx</span> — 0-based chunk index<br>
+      <span style="color:var(--a2)">total</span> — total chunk count<br>
+      <span style="color:var(--a2)">chunkHash</span> — hash of this chunk's raw bytes (post-enc)<br>
+      <span style="color:var(--a2)">fileHash</span> — hash of the original file<br>
+      <span style="color:var(--a2)">comp</span> — 0 or 1<br>
+      <span style="color:var(--a2)">compAlgo</span> — none / deflate-raw / gzip / deflate<br>
+      <span style="color:var(--a2)">enc</span> — 0 or 1<br>
+      <span style="color:var(--a2)">salt</span> — PBKDF2 salt hex (0 if not encrypted)<br>
+      <span style="color:var(--a2)">iv</span> — AES-GCM IV hex (0 if not encrypted)<br>
+      <span style="color:var(--a2)">hashAlgo</span> — sha256 / sha384 / sha512<br>
+      <span style="color:var(--a2)">hexdata</span> — chunk bytes as lowercase hex
+    </div>
+  </div>
+
+  <div class="pnl glass">
+    <div class="pnl-title"><span class="pnl-num">◈</span>INJECTION CHECKLIST</div>
+    <div class="note" style="margin-top:0;font-size:10px;line-height:2.2">
+      <span class="ng">□</span> Run self-test — both encode and decode pipelines working<br>
+      <span class="ng">□</span> decoder.html loaded on target machine in browser<br>
+      <span class="ng">□</span> Paste textarea has keyboard focus (click it)<br>
+      <span class="ng">□</span> DuckyScript delay matches speed estimator<br>
+      <span class="ng">□</span> Chunk size ≥ 1KB (smaller sizes increase overhead)<br>
+      <span class="ng">□</span> If encrypted — password shared with decoder operator<br>
+      <span class="ng">□</span> Post-inject — re-verify chunks, check for hash failures<br>
+      <span class="ng">□</span> Assemble and verify file hash matches
+    </div>
+  </div>
+
+  <div class="pnl glass">
+    <div class="pnl-title"><span class="pnl-num">◈</span>BROWSER CAPABILITIES</div>
+    <div id="caps-list" style="font-size:10px;line-height:2.2;margin-top:0"></div>
+  </div>
+
+</div>
+</div><!-- /tools-tab -->
+
+<footer>7YP3X-L1N3F33D v4.0 · HID-KBD FILE TRANSFER PROTOCOL · TX-T3RM1N4L · Off-Thread Worker Pipeline</footer>
+
+<!-- ════════════════════════════════════════
+     WORKER SOURCE (runs in background thread)
+     All CPU-heavy work goes here — no main thread blocking
+════════════════════════════════════════ -->
+<script id="worker-src" type="text/plain">
+'use strict';
+
+/* ── Helpers ────────────────────────────────── */
+function toHex(buf){
+  const b=new Uint8Array(buf);const hex=[];
+  for(let i=0;i<b.length;i++)hex.push(b[i].toString(16).padStart(2,'0'));
+  return hex.join('');
+}
+function hexToBuf(hex){
+  if(!hex||hex==='0'||hex.length<2)return new ArrayBuffer(0);
+  const b=new Uint8Array(Math.floor(hex.length/2));
+  for(let i=0;i<b.length;i++)b[i]=parseInt(hex.substr(i*2,2),16);
+  return b.buffer;
+}
+function algoName(s){return s.replace(/^sha(\d+)$/,'SHA-$1');}
+async function hashBuf(buf,algo){
+  const h=await crypto.subtle.digest(algoName(algo),buf);
+  return toHex(h);
+}
+
+async function compress(buf,algo){
+  const cs=new CompressionStream(algo);
+  const w=cs.writable.getWriter();
+  w.write(new Uint8Array(buf));w.close();
+  const r=cs.readable.getReader();
+  const parts=[];
+  while(true){const{done,value}=await r.read();if(done)break;parts.push(value);}
+  const total=parts.reduce((s,p)=>s+p.length,0);
+  const out=new Uint8Array(total);let off=0;
+  for(const p of parts){out.set(p,off);off+=p.length;}
+  return out.buffer;
+}
+
+async function decompress(buf,algo){
+  const ds=new DecompressionStream(algo);
+  const w=ds.writable.getWriter();
+  w.write(new Uint8Array(buf));w.close();
+  const r=ds.readable.getReader();
+  const parts=[];
+  while(true){const{done,value}=await r.read();if(done)break;parts.push(value);}
+  const total=parts.reduce((s,p)=>s+p.length,0);
+  const out=new Uint8Array(total);let off=0;
+  for(const p of parts){out.set(p,off);off+=p.length;}
+  return out.buffer;
+}
+
+async function deriveKey(password,salt,usage){
+  const raw=new TextEncoder().encode(password);
+  const km=await crypto.subtle.importKey('raw',raw,'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2',salt:new Uint8Array(salt),iterations:210000,hash:'SHA-256'},
+    km,{name:'AES-GCM',length:256},false,[usage]
+  );
+}
+
+function prog(id,step,pct,msg){self.postMessage({id,type:'PROGRESS',step,pct,msg});}
+function warn(id,msg){self.postMessage({id,type:'WARN',msg});}
+
+/* ── ENCODE ─────────────────────────────────── */
+async function doEncode(id,p){
+  let buf=p.fileBuffer;
+  const origSize=buf.byteLength;
+
+  prog(id,'hash',5,'Hashing original file...');
+  const fileHash=await hashBuf(buf,p.hashAlgo);
+
+  /* Compress */
+  let wasComp=false,compAlgo='none';
+  if(p.doCompress){
+    prog(id,'compress',15,'Compressing...');
+    try{
+      const cb=await compress(buf,p.compAlgo);
+      if(cb.byteLength<origSize){buf=cb;wasComp=true;compAlgo=p.compAlgo;}
+      else warn(id,'Compressed size >= original — skipping compression');
+    }catch(e){warn(id,'Compression failed ('+e.message+') — continuing uncompressed');}
+  }
+
+  /* Encrypt */
+  let wasEnc=false,saltHex='0',ivHex='0';
+  if(p.doEncrypt&&p.password){
+    prog(id,'encrypt',28,'Encrypting (AES-256-GCM)...');
+    const salt=crypto.getRandomValues(new Uint8Array(16));
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    try{
+      const key=await deriveKey(p.password,salt,'encrypt');
+      const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,buf);
+      buf=ct;wasEnc=true;saltHex=toHex(salt.buffer);ivHex=toHex(iv.buffer);
+    }catch(e){throw new Error('Encryption failed: '+e.message);}
+  }
+
+  /* Chunk */
+  const totalBytes=buf.byteLength;
+  const chunkSize=p.chunkSize;
+  const totalChunks=Math.ceil(totalBytes/chunkSize)||1;
+  const compFlag=wasComp?'1':'0';
+  const encFlag=wasEnc?'1':'0';
+  const algoShort=p.hashAlgo; // already 'sha256' etc
+
+  const chunks=[];
+  let totalChars=0;
+
+  for(let i=0;i<totalChunks;i++){
+    const start=i*chunkSize;
+    const end=Math.min(start+chunkSize,totalBytes);
+    const slice=buf.slice(start,end);
+    const chunkHash=await hashBuf(slice,p.hashAlgo);
+    const hexData=toHex(slice);
+    // ibv1 format — 13 semicolon-separated fields
+    // Field 13: filename hex-encoded as UTF-8 → stays in 0-9 a-f safe set
+    const nameHex=toHex(new TextEncoder().encode(p.filename||''));
+    const line=`ibv1;${i};${totalChunks};${chunkHash};${fileHash};${compFlag};${compAlgo};${encFlag};${saltHex};${ivHex};${algoShort};${hexData};${nameHex}`;
+    totalChars+=line.length;
+    chunks.push({index:i,hash:chunkHash,size:slice.byteLength,chars:line.length,str:line,start,end:end-1});
+    // Progress every 5 chunks or at end
+    if(i%5===4||i===totalChunks-1){
+      prog(id,'chunk',30+Math.round(((i+1)/totalChunks)*65),'Chunking '+( i+1)+'/'+totalChunks+'...');
+    }
+    // Yield every 25 chunks to allow progress messages through
+    if(i%25===24)await new Promise(r=>setTimeout(r,0));
+  }
+
+  self.postMessage({id,type:'RESULT',cmd:'ENCODE',data:{
+    chunks,fileHash,origSize,finalSize:totalBytes,
+    wasComp,wasEnc,saltHex,ivHex,totalChunks,
+    hashAlgo:p.hashAlgo,filename:p.filename,
+    totalChars,chunkSize,
+    compRatio:wasComp?((1-totalBytes/origSize)*100).toFixed(1):'0',
+    compAlgo
+  }});
+}
+
+/* ── ASSEMBLE ───────────────────────────────── */
+async function doAssemble(id,p){
+  // p.chunks: [{data_hex, chunk_index}] sorted
+  // p.meta: {file_hash, compressed, comp_algo, encrypted, salt, iv, hash_algo, filename}
+
+  prog(id,'assemble',8,'Concatenating '+p.chunks.length+' chunks...');
+
+  // Convert hex chunks to buffers
+  const bufs=p.chunks.map(c=>{
+    const b=new Uint8Array(c.data_hex.length/2);
+    for(let i=0;i<b.length;i++)b[i]=parseInt(c.data_hex.substr(i*2,2),16);
+    return b;
+  });
+  const total=bufs.reduce((s,b)=>s+b.length,0);
+  const combined=new Uint8Array(total);
+  let off=0;for(const b of bufs){combined.set(b,off);off+=b.length;}
+  let buf=combined.buffer;
+
+  /* Decrypt */
+  if(p.meta.encrypted){
+    prog(id,'decrypt',35,'Decrypting (AES-256-GCM, PBKDF2)...');
+    try{
+      const salt=hexToBuf(p.meta.salt);
+      const iv=new Uint8Array(hexToBuf(p.meta.iv));
+      const key=await deriveKey(p.password,new Uint8Array(salt),'decrypt');
+      buf=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,buf);
+    }catch(e){
+      throw new Error('Decryption failed — wrong password or corrupted data. ('+e.message+')');
+    }
+    prog(id,'decrypt',55,'Decryption successful');
+  }
+
+  /* Decompress */
+  if(p.meta.compressed&&p.meta.comp_algo&&p.meta.comp_algo!=='none'){
+    prog(id,'decompress',65,'Decompressing ('+p.meta.comp_algo+')...');
+    try{buf=await decompress(buf,p.meta.comp_algo);}
+    catch(e){throw new Error('Decompression failed: '+e.message);}
+  }
+
+  /* Verify file hash */
+  prog(id,'verify',82,'Verifying file hash...');
+  const computed=await hashBuf(buf,p.meta.hash_algo);
+  if(computed!==p.meta.file_hash){
+    throw new Error(`File hash MISMATCH.\nExpected: ${p.meta.file_hash.substr(0,20)}...\nGot:      ${computed.substr(0,20)}...`);
+  }
+
+  prog(id,'done',100,'Assembly complete');
+  // Transfer the buffer (zero-copy) back to main thread
+  self.postMessage({id,type:'RESULT',cmd:'ASSEMBLE',data:{filename:p.meta.filename,size:buf.byteLength}},
+    // Can't transfer buf here because we need to also post it — use transferable
+    []
+  );
+  // Send buffer separately as transferable
+  self.postMessage({id,type:'FILE_BUFFER',buffer:buf},[buf]);
+}
+
+/* ── SELF TEST ──────────────────────────────── */
+async function doSelfTest(id,p){
+  const testData=new TextEncoder().encode('7YP3X SELF TEST '+Date.now());
+  const testFile=testData.buffer;
+  const pwd=p.useEncryption?'test-password-1234':'';
+
+  prog(id,'test',10,'Encoding test payload...');
+
+  // Encode
+  const salt=p.useEncryption?crypto.getRandomValues(new Uint8Array(16)):new Uint8Array(0);
+  const iv=p.useEncryption?crypto.getRandomValues(new Uint8Array(12)):new Uint8Array(0);
+  const fileHash=await hashBuf(testFile,'sha256');
+  let buf=testFile;
+  let wasEnc=false,saltHex='0',ivHex='0';
+
+  if(p.useEncryption){
+    prog(id,'test',25,'Encrypting...');
+    const key=await deriveKey(pwd,salt,'encrypt');
+    buf=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,buf);
+    wasEnc=true;saltHex=toHex(salt.buffer);ivHex=toHex(iv.buffer);
+  }
+
+  const chunkSize=256;
+  const totalChunks=Math.ceil(buf.byteLength/chunkSize)||1;
+  const chunks=[];
+  for(let i=0;i<totalChunks;i++){
+    const sl=buf.slice(i*chunkSize,Math.min((i+1)*chunkSize,buf.byteLength));
+    const h=await hashBuf(sl,'sha256');
+    const line=`ibv1;${i};${totalChunks};${h};${fileHash};0;none;${wasEnc?1:0};${saltHex};${ivHex};sha256;${toHex(sl)}`;
+    chunks.push(line);
+  }
+
+  prog(id,'test',55,'Decoding test chunks...');
+
+  // Parse back
+  const parsed=chunks.map(line=>{
+    const p2=line.split(';');
+    return{chunk_index:parseInt(p2[1],10),data_hex:p2[11],chunk_hash:p2[3]};
+  });
+
+  // Verify hashes
+  for(const c of parsed){
+    const b=hexToBuf(c.data_hex);
+    const h=await hashBuf(b,'sha256');
+    if(h!==c.chunk_hash)throw new Error('Chunk hash mismatch in self-test — chunking broken');
+  }
+
+  // Assemble
+  prog(id,'test',70,'Assembling...');
+  parsed.sort((a,b)=>a.chunk_index-b.chunk_index);
+  const bufs=parsed.map(c=>hexToBuf(c.data_hex));
+  const total=bufs.reduce((s,b)=>s+b.byteLength,0);
+  const comb=new Uint8Array(total);let off2=0;
+  for(const b of bufs){comb.set(new Uint8Array(b),off2);off2+=b.byteLength;}
+  let assembled=comb.buffer;
+
+  if(wasEnc){
+    prog(id,'test',82,'Decrypting...');
+    const key2=await deriveKey(pwd,new Uint8Array(hexToBuf(saltHex)),'decrypt');
+    assembled=await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(hexToBuf(ivHex))},key2,assembled);
+  }
+
+  const finalHash=await hashBuf(assembled,'sha256');
+  if(finalHash!==fileHash)throw new Error('Final file hash mismatch in self-test — assembly broken');
+
+  prog(id,'test',100,'Self-test passed');
+  self.postMessage({id,type:'RESULT',cmd:'SELF_TEST',data:{passed:true,chunks:chunks.length,useEncryption:p.useEncryption}});
+}
+
+self.onmessage=async function(e){
+  const{id,cmd,payload}=e.data;
+  try{
+    if(cmd==='ENCODE')await doEncode(id,payload);
+    else if(cmd==='ASSEMBLE')await doAssemble(id,payload);
+    else if(cmd==='SELF_TEST')await doSelfTest(id,payload);
+    else self.postMessage({id,type:'ERROR',msg:'Unknown command: '+cmd});
+  }catch(err){
+    self.postMessage({id,type:'ERROR',msg:err.message});
+  }
+};
+</script>
+
+<!-- ════════════════════════════════════════
+     MAIN SCRIPT
+════════════════════════════════════════ -->
+<script>
+/*
+ * ╔══════════════════════════════════════════════════════════════════╗
+ * ║  TX-T3RM1N4L  —  7YP3X-L1N3F33D v4.0                          ║
+ * ║  Main script — runs on the OPERATOR machine, never the target   ║
+ * ╠══════════════════════════════════════════════════════════════════╣
+ * ║  Sections (Ctrl+F the tag to jump):                             ║
+ * ║   [UTIL]      dl, fmt, esc, safeName, dlBuf                     ║
+ * ║   [SETTINGS]  localStorage key: typex_cfg                       ║
+ * ║   [THEMES]    12 colour themes, applyTheme, buildThemeList      ║
+ * ║   [DRAWER]    settings sidebar open / close                     ║
+ * ║   [CLOCK]     UTC clock in classbar                             ║
+ * ║   [STATUS]    setSt — dot + text in header pill                 ║
+ * ║   [TABS]      switchTab — encode / decode / tools               ║
+ * ║   [LOGS]      addLog, elogOk, elogErr, etc                      ║
+ * ║   [WORKER]    off-thread worker init + message routing          ║
+ * ║   [ENCODE]    file drop, autoChunk, encode button flow          ║
+ * ║   [MANIFEST]  buildManifest — chunk table                       ║
+ * ║   [SPEED]     PRESETS, setPreset, recalcSpd, HID ETA            ║
+ * ║   [COPY]      copyField — clipboard with execCommand fallback   ║
+ * ║   [DOWNLOADS] HID txt, DuckyScript, JSON, ZIP exports           ║
+ * ║   [REEXPORT]  selective chunk re-injection by index spec        ║
+ * ║   [DECODE]    IndexedDB helpers, ibv1 parser, proc, assemble    ║
+ * ║   [TOOLS]     self-test, browser capability check               ║
+ * ║   [INIT]      startup sequence                                  ║
+ * ║   [STEALTH]   overlay, LED dot, combo capture, mobile tap       ║
+ * ║   [PARTICLES] canvas animation — runs in a separate IIFE        ║
+ * ╚══════════════════════════════════════════════════════════════════╝
+ */
+'use strict';
+
+// [UTIL] ──────────────────────────────────────────────────────────────────────
+// Tiny helpers used all over the place. Nothing clever here.
+const $=id=>document.getElementById(id);
+function fmt(n){if(n===0)return'0 B';if(n<1024)return n+' B';if(n<1048576)return(n/1024).toFixed(2)+' KB';return(n/1048576).toFixed(2)+' MB';}
+function h2s(s){s=Math.max(0,s);if(s<60)return s.toFixed(1)+'s';if(s<3600)return Math.floor(s/60)+'m '+Math.round(s%60)+'s';return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m';}
+function dl(content,name,type){const b=new Blob([content],{type});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);}
+function dlBuf(buf,name){dl(buf,name,'application/octet-stream');}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function safeName(s){return s.replace(/[^a-z0-9_\-\.]/gi,'_');}
+
+// [SETTINGS] ───────────────────────────────────────────────────────────────────
+// Persists theme, chunk size, hash algo, compression prefs across reloads.
+// Encryption is deliberately excluded — operator must re-set password each time.
+const SETTINGS_KEY='typex_cfg';
+function loadSettings(){try{return JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')}catch(e){return{};}}
+function saveSettings(patch){try{const s={...loadSettings(),...patch};localStorage.setItem(SETTINGS_KEY,JSON.stringify(s));}catch(e){}}
+const S=loadSettings();
+
+// [THEMES] ─────────────────────────────────────────────────────────────────────
+// 12 colour themes. Each entry defines all CSS tokens so the whole UI recolours
+// in one pass. 'iron' is the default — matches the 7YP3X brand orange.
+const THEMES={
+  iron:    {n:'7YP3X-L1N3F33D',  a1:'#e8922a',a2:'#5bc8f5',a3:'#c8a84a',bg:'#0a0807',gl:'rgba(16,12,10,.62)', b1:'rgba(255,255,255,.07)',tx:'#c4b49a',d2:'#6a5a48',dm:'#2e261c',ok:'#5cbf6a',er:'#d94040',wn:'#e8b840',cl:'#701515',gw:'232,146,42'},
+  phosphor:{n:'Phosphor',   a1:'#00ff7f',a2:'#00ccff',a3:'#88ff44',bg:'#060b08',gl:'rgba(8,14,10,.62)',  b1:'rgba(255,255,255,.06)',tx:'#b0d4b8',d2:'#507858',dm:'#1a301e',ok:'#44dd88',er:'#ff4455',wn:'#ffaa00',cl:'#0a2010',gw:'0,255,127'},
+  arctic:  {n:'Arctic',     a1:'#38bdf8',a2:'#7dd3fc',a3:'#67e8f9',bg:'#070c12',gl:'rgba(10,16,26,.62)', b1:'rgba(255,255,255,.07)',tx:'#b8d4e8',d2:'#4a6880',dm:'#1a2e40',ok:'#4ade80',er:'#f87171',wn:'#fbbf24',cl:'#0e3050',gw:'56,189,248'},
+  crimson: {n:'Crimson',    a1:'#ff5555',a2:'#ff8c69',a3:'#ff3399',bg:'#0d0606',gl:'rgba(18,8,8,.62)',   b1:'rgba(255,255,255,.07)',tx:'#d4b0b0',d2:'#7a4848',dm:'#2e1414',ok:'#66cc77',er:'#ff3333',wn:'#ffcc44',cl:'#5a0808',gw:'255,85,85'},
+  phantom: {n:'Phantom',    a1:'#c084fc',a2:'#818cf8',a3:'#f472b6',bg:'#080610',gl:'rgba(12,10,22,.62)', b1:'rgba(255,255,255,.07)',tx:'#c8b8e4',d2:'#6a5888',dm:'#1e1430',ok:'#86efac',er:'#f87171',wn:'#fbbf24',cl:'#300a58',gw:'192,132,252'},
+  obsidian:{n:'Obsidian',   a1:'#e2e8f0',a2:'#94a3b8',a3:'#cbd5e1',bg:'#050507',gl:'rgba(10,10,16,.62)', b1:'rgba(255,255,255,.08)',tx:'#c8d0de',d2:'#505868',dm:'#18181e',ok:'#68d391',er:'#fc8181',wn:'#f6e05e',cl:'#1a1a28',gw:'200,210,220'},
+  cobalt:  {n:'Cobalt',     a1:'#ffd700',a2:'#4fc3f7',a3:'#ffab40',bg:'#060a14',gl:'rgba(8,14,24,.62)',  b1:'rgba(255,255,255,.07)',tx:'#b8c8e0',d2:'#4a5870',dm:'#141e38',ok:'#66bb6a',er:'#ef5350',wn:'#ffa726',cl:'#0e1a40',gw:'255,215,0'},
+  jade:    {n:'Jade',       a1:'#2dd4bf',a2:'#4ade80',a3:'#38bdf8',bg:'#060e0a',gl:'rgba(8,16,12,.62)',  b1:'rgba(255,255,255,.07)',tx:'#b0d8c8',d2:'#406858',dm:'#0e2018',ok:'#4ade80',er:'#f87171',wn:'#fbbf24',cl:'#083020',gw:'45,212,191'},
+  solar:   {n:'Solar',      a1:'#fbbf24',a2:'#f97316',a3:'#facc15',bg:'#0c0800',gl:'rgba(18,12,2,.62)',  b1:'rgba(255,255,255,.07)',tx:'#e0c890',d2:'#785830',dm:'#2a1c00',ok:'#68d391',er:'#fc8181',wn:'#f97316',cl:'#402000',gw:'251,191,36'},
+  rose:    {n:'Rose',       a1:'#f472b6',a2:'#fb7185',a3:'#e879f9',bg:'#0d060a',gl:'rgba(18,8,14,.62)',  b1:'rgba(255,255,255,.07)',tx:'#d8b0c8',d2:'#784860',dm:'#26101c',ok:'#86efac',er:'#f87171',wn:'#fbbf24',cl:'#480828',gw:'244,114,182'},
+  toxic:   {n:'Toxic',      a1:'#39ff14',a2:'#00ffff',a3:'#ff6600',bg:'#040604',gl:'rgba(6,10,6,.62)',   b1:'rgba(255,255,255,.06)',tx:'#98e898',d2:'#306030',dm:'#0c180c',ok:'#39ff14',er:'#ff0044',wn:'#ffff00',cl:'#062006',gw:'57,255,20'},
+  midnight:{n:'Midnight',   a1:'#6366f1',a2:'#8b5cf6',a3:'#06b6d4',bg:'#06060f',gl:'rgba(10,10,22,.62)', b1:'rgba(255,255,255,.07)',tx:'#b8b8d8',d2:'#505070',dm:'#14142a',ok:'#6ee7b7',er:'#f87171',wn:'#fbbf24',cl:'#12103a',gw:'99,102,241'}
+};
+
+// applyTheme — swap all CSS custom properties + update brand tag + page title
+function applyTheme(k,save=true){
+  const t=THEMES[k];if(!t)return;
+  const r=document.documentElement.style;
+  r.setProperty('--a1',t.a1);r.setProperty('--a2',t.a2);r.setProperty('--a3',t.a3);
+  r.setProperty('--bg',t.bg);r.setProperty('--gl',t.gl);r.setProperty('--bd',t.b1);
+  r.setProperty('--tx',t.tx);r.setProperty('--d2',t.d2);r.setProperty('--dm',t.dm);
+  r.setProperty('--ok',t.ok);r.setProperty('--er',t.er);r.setProperty('--wn',t.wn);
+  r.setProperty('--cl',t.cl);r.setProperty('--gw',t.gw);
+  // Update brand tag + page title to show active theme name
+  const bt=$('brand-tag');
+  if(bt)bt.textContent=t.n.toUpperCase();
+  const pt=$('page-title');
+  if(pt)pt.textContent=t.n.toUpperCase()+' · TX-T3RM1N4L';
+  // Signal the particle canvas to pick up the new accent colour
+  if(window.pxSetColor)window.pxSetColor(t.a1);
+  // Update theme list active state
+  document.querySelectorAll('.th-row').forEach(el=>el.classList.toggle('active',el.dataset.theme===k));
+  if(save)saveSettings({theme:k});
+}
+
+function buildThemeList(){
+  const list=$('theme-list');
+  Object.entries(THEMES).forEach(([k,t])=>{
+    const row=document.createElement('div');
+    row.className='th-row';row.dataset.theme=k;
+    row.onclick=()=>applyTheme(k);
+    row.innerHTML=`<div class="th-dot" style="background:linear-gradient(135deg,${t.bg} 50%,${t.a1} 50%)"></div>
+      <span class="th-name">${t.n}</span>`;
+    list.appendChild(row);
+  });
+}
+
+// [DRAWER] ─────────────────────────────────────────────────────────────────────
+function openSd(){$('sd').classList.add('open');$('sd-bg').classList.add('open');}
+function closeSd(){$('sd').classList.remove('open');$('sd-bg').classList.remove('open');}
+
+// [CLOCK] ──────────────────────────────────────────────────────────────────────
+// The classbar clock doubles as an OpSec check — if it's ticking, the page is live.
+setInterval(()=>{$('clk').textContent=new Date().toISOString().substr(0,19).replace('T',' ')+' UTC';},1000);
+
+// [STATUS] ─────────────────────────────────────────────────────────────────────
+// setSt syncs the header dot colour AND the stealth LED dot in one call.
+// mode strings: idle | working | crypto | ok | err | warn
+function setSt(txt,mode='idle'){
+  const d=$('sdot');
+  d.classList.remove('idle','on','crypto','ok','err','warn');
+  if(mode==='idle')d.classList.add('idle');
+  else if(mode==='working')d.classList.add('on');
+  else if(mode==='crypto')d.classList.add('crypto');
+  else if(mode==='ok')d.classList.add('ok');
+  else if(mode==='err')d.classList.add('err');
+  else if(mode==='warn')d.classList.add('warn');
+  $('stxt').textContent=txt;
+  // Sync stealth LED dot colour to current status
+  const modeColors={idle:'#444',on:'var(--a1)',crypto:'var(--a2)',ok:'var(--ok)',err:'var(--er)',warn:'var(--wn)'};
+  var led=$('enc-st-led');if(led)led.style.background=modeColors[mode]||modeColors.idle;
+}
+
+// [TABS] ───────────────────────────────────────────────────────────────────────
+function switchTab(name){
+  ['enc','dec','tools'].forEach(n=>{
+    $(`${n}-tab`).classList.toggle('on',n===name);
+    $(`tt${n}`).classList.toggle('on',n===name);
+  });
+}
+
+// [LOGS] ───────────────────────────────────────────────────────────────────────
+function addLog(el,msg,type='d'){
+  const ts=new Date().toISOString().substr(11,8);
+  const s=document.createElement('span');
+  s.className='l-'+type;s.style.display='block';
+  s.textContent=`[${ts}] ${msg}`;
+  el.appendChild(s);el.scrollTop=el.scrollHeight;
+}
+const elog=msg=>addLog($('elog'),msg,'d');
+const elogOk=msg=>addLog($('elog'),msg,'ok');
+const elogWarn=msg=>addLog($('elog'),msg,'w');
+const elogErr=msg=>addLog($('elog'),msg,'e');
+const elogInfo=msg=>addLog($('elog'),msg,'i');
+
+// [WORKER] ─────────────────────────────────────────────────────────────────────
+// All CPU-heavy ops (hash, compress, encrypt, chunk) run in a background worker
+// so the UI never freezes. Worker code lives in <script id="worker-src">.
+let worker=null;const pending=new Map();let pendingBufResolver=null;
+let _encodeBuffer=null; // holds assembled buffer from worker
+
+function getWorker(){
+  if(worker)return worker;
+  const code=$('worker-src').textContent;
+  const blob=new Blob([code],{type:'application/javascript'});
+  const url=URL.createObjectURL(blob);
+  worker=new Worker(url);
+  worker.onmessage=e=>{
+    const{id,type,msg,data,buffer,step,pct}=e.data;
+    if(type==='PROGRESS'){
+      const cb=pending.get(id);
+      if(cb&&cb.onprogress)cb.onprogress(pct,msg);
+    }else if(type==='WARN'){
+      const cb=pending.get(id);
+      if(cb&&cb.onwarn)cb.onwarn(msg);
+      else elogWarn('[Worker] '+msg);
+    }else if(type==='FILE_BUFFER'){
+      // Binary result from ASSEMBLE
+      if(pendingBufResolver){pendingBufResolver(buffer);pendingBufResolver=null;}
+    }else if(type==='RESULT'){
+      const cb=pending.get(id);
+      if(cb){pending.delete(id);cb.resolve(data);}
+    }else if(type==='ERROR'){
+      const cb=pending.get(id);
+      if(cb){pending.delete(id);cb.reject(new Error(msg));}
+    }
+  };
+  worker.onerror=e=>{elogErr('Worker crash: '+(e.message||'unknown'));};
+  return worker;
+}
+
+function workerCall(cmd,payload,onprogress,onwarn,transfer=[]){
+  return new Promise((resolve,reject)=>{
+    const id='w'+(Date.now()+Math.random()).toString(36);
+    pending.set(id,{resolve,reject,onprogress,onwarn});
+    getWorker().postMessage({id,cmd,payload},transfer);
+  });
+}
+
+function workerCallWithBuffer(cmd,payload,onprogress,onwarn,transfer=[]){
+  return new Promise((resolve,reject)=>{
+    const id='w'+(Date.now()+Math.random()).toString(36);
+    let result=null;
+    let buf=null;
+    function tryResolve(){if(result&&buf)resolve({...result,buffer:buf});}
+    pending.set(id,{
+      resolve:(d)=>{result=d;tryResolve();},
+      reject,onprogress,onwarn
+    });
+    pendingBufResolver=(b)=>{buf=b;tryResolve();};
+    getWorker().postMessage({id,cmd,payload},transfer);
+  });
+}
+
+// [ENCODE] ─────────────────────────────────────────────────────────────────────
+// gFile, gChunks, gFileHash, gEncResult are the global encode session state.
+// They get cleared on reset and populated by the ENCODE worker command.
+let gFile=null,gChunks=[],gFileHash='',gEncResult=null;
+const PRECOMP=['.zip','.gz','.rar','.7z','.bz2','.docx','.xlsx','.pptx',
+  '.pdf','.jpg','.jpeg','.png','.gif','.webp','.mp4','.mkv','.mp3',
+  '.aac','.ogg','.flac','.apk','.jar','.exe','.dmg'];
+
+/* ── Drop zone ────────────────────────────── */
+const dz=$('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',e=>{if(!dz.contains(e.relatedTarget))dz.classList.remove('over');});
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0]);});
+dz.addEventListener('click',()=>$('fi-input').click());
+$('fi-input').addEventListener('change',e=>{if(e.target.files[0])loadFile(e.target.files[0]);});
+
+function loadFile(f){
+  gFile=f;gChunks=[];gFileHash='';gEncResult=null;
+  dz.style.display='none';
+  const fi=$('file-info');fi.style.display='flex';fi.style.flexDirection='column';
+  $('fi-n').textContent=f.name;
+  $('fi-s').textContent=fmt(f.size)+' ('+f.size.toLocaleString()+' bytes)';
+  $('fi-t').textContent=f.type||'application/octet-stream';
+  $('fi-d').textContent=new Date(f.lastModified).toLocaleString();
+  $('enc-btn').disabled=false;
+  const precomp=PRECOMP.some(e=>f.name.toLowerCase().endsWith(e));
+  $('precomp-warn').style.display=precomp?'block':'none';
+  // Auto-chunk calculation — works backwards from the Flipper's HID sweet spot.
+  // ibv1 string length ≈ rawBytes×2 + ~200 chars overhead (hashes + header + nameHex).
+  // 7 KB HID → max rawBytes = (7168-200)/2 = 3484 → clamp to 3328 (13×256)
+  // 2 KB HID → min rawBytes = (2048-200)/2 = 924 → clamp up to 1024 (4×256)
+  // Target ~150 chunks per file so re-injection of failures stays manageable.
+  // User can always override with the slider — this only fires on new file drop.
+  // ibv1 string len ≈ rawBytes*2 + ~200 chars overhead (hashes + header + nameHex).
+  // 2 KB string → rawBytes ≤ (2048-200)/2 = 924 → round up to 1024 (4×256)
+  // 7 KB string → rawBytes ≤ (7168-200)/2 = 3484 → round down to 3328 (13×256)
+  // Target ~150 chunks; clamp result to [1024, 3328] raw bytes.
+  // User can override with the slider — this only fires on new file drop.
+  const autoChunk=Math.max(1024,Math.min(3328,Math.round(f.size/150/256)*256||1024));
+  $('csl').value=autoChunk;
+  const hidEst=Math.round((autoChunk*2+200)/1024*10)/10;
+  $('csv').textContent=(autoChunk/1024).toFixed(autoChunk%1024===0?0:1)+' KB raw · ~'+hidEst+' KB HID';
+  // Reset results
+  ['hash-pnl','manifest','spd-panel','hid-panel'].forEach(id=>$(id).style.display='none');
+  $('enc-progress').style.display='none';$('stat-grid').style.display='none';
+  $('enc-result').style.display='none';
+  elogInfo('Loaded: '+f.name+' ('+fmt(f.size)+')');setSt('FILE LOADED','ok');
+}
+
+/* ── Sliders/toggles ──────────────────────── */
+$('csl').addEventListener('input',function(){
+  const v=parseInt(this.value);
+  // Show raw size AND estimated HID string size (hex encode doubles + ~200 char overhead)
+  const hidKB=Math.round((v*2+200)/1024*10)/10;
+  const rawStr=v>=1024?(v/1024).toFixed(v%1024===0?0:1)+' KB':v+' B';
+  $('csv').textContent=rawStr+' raw · ~'+hidKB+' KB HID';
+  saveSettings({chunkSize:v});
+});
+$('ctog').addEventListener('change',function(){
+  $('calg-row').style.opacity=this.checked?'1':'0.4';
+  saveSettings({compress:this.checked});
+});
+$('etog').addEventListener('change',function(){
+  $('enc-opts').style.display=this.checked?'block':'none';
+  saveSettings({encrypt:this.checked});
+});
+$('halg').addEventListener('change',function(){saveSettings({hashAlgo:this.value});});
+$('calg').addEventListener('change',function(){saveSettings({compAlgo:this.value});});
+
+function genPwd(){
+  const chars='abcdefghjkmnpqrstuvwxyz23456789';let p='';
+  for(let i=0;i<20;i++){if(i>0&&i%5===0)p+='-';p+=chars[crypto.getRandomValues(new Uint8Array(1))[0]%chars.length];}
+  $('enc-pwd').value=p;
+}
+
+function setProg(pct,lbl){
+  $('prog-fill').style.width=pct+'%';$('prog-pct').textContent=Math.round(pct)+'%';
+  $('prog-lbl').textContent=lbl;
+  if(lbl&&lbl.toLowerCase().indexOf('encrypt')!==-1)setSt('ENCRYPTING','crypto');
+  else if(lbl&&lbl.toLowerCase().indexOf('compress')!==-1)setSt('COMPRESSING','warn');
+  else if(lbl&&(lbl.toLowerCase().indexOf('hash')!==-1||lbl.toLowerCase().indexOf('chunk')!==-1))setSt('HASHING','on');
+}
+
+/* ── ENCODE ───────────────────────────────── */
+$('enc-btn').addEventListener('click',async()=>{
+  if(!gFile){elogErr('No file selected');return;}
+  const pwd=($('enc-pwd').value||'').trim();
+  if($('etog').checked&&!pwd){elogErr('Encryption enabled but no password set');return;}
+
+  $('enc-btn').disabled=true;setSt('ENCODING','working');
+  window.pxPaused=true;
+  $('enc-progress').style.display='block';$('stat-grid').style.display='none';
+  setProg(2,'Reading file...');elogInfo('Starting encode: '+gFile.name);
+
+  let buf;
+  try{
+    buf=await gFile.arrayBuffer();
+  }catch(e){elogErr('File read failed: '+e.message);$('enc-btn').disabled=false;setSt('ERROR','err');return;}
+
+  // Clone buffer before transfer so gFile is still accessible if needed
+  const bufCopy=buf.slice(0);
+
+  try{
+    const result=await workerCall('ENCODE',{
+      fileBuffer:bufCopy,
+      filename:gFile.name,
+      chunkSize:parseInt($('csl').value),
+      hashAlgo:$('halg').value,
+      doCompress:$('ctog').checked,
+      compAlgo:$('calg').value,
+      doEncrypt:$('etog').checked&&!!pwd,
+      password:pwd
+    },
+    (pct,msg)=>{setProg(pct,msg);},
+    (msg)=>{elogWarn(msg);},
+    [bufCopy]
+    );
+
+    gChunks=result.chunks;
+    gFileHash=result.fileHash;
+    gEncResult=result;
+
+    // Show stats
+    $('stat-grid').style.display='grid';
+    $('st-chunks').textContent=result.totalChunks.toLocaleString();
+    $('st-size').textContent=fmt(result.finalSize);
+    $('st-chars').textContent=result.totalChars.toLocaleString();
+    $('st-chsz').textContent=Math.round(result.totalChars/result.totalChunks).toLocaleString();
+    setProg(100,'Encode complete');
+
+    // Hash display
+    $('hash-algo-lbl').textContent='FILE HASH ('+result.hashAlgo.toUpperCase()+')';
+    $('hash-val').textContent=result.fileHash;
+    $('hash-pnl').style.display='block';
+
+    // Compression info
+    if(result.wasComp){
+      $('cip-o').textContent=fmt(result.origSize);
+      $('cip-c').textContent=fmt(result.finalSize);
+      $('cip-r').textContent=result.compRatio+'%';
+      $('comp-info-post').style.display='flex';
+    }
+
+    // Encryption result
+    if(result.wasEnc){
+      $('enc-result').style.display='block';
+      $('er-pwd').textContent=pwd;
+      $('er-salt').textContent=result.saltHex;
+      $('er-iv').textContent=result.ivHex;
+      elogWarn('ENCRYPTION ACTIVE — password saved to result panel above');
+    }
+
+    // Chunk manifest
+    buildManifest(result.chunks);
+
+    // Speed estimator + HID panel + Re-export panel
+    $('spd-panel').style.display='block';
+    setPreset('fd');
+    $('hid-panel').style.display='block';
+    $('reexport-panel').style.display='block';
+    $('reex-input').value='';$('reex-preview').textContent='';
+    $('reex-result').style.display='none';
+    const s0=gChunks[0].str;
+    $('hid-sample').textContent=s0.substr(0,150)+(s0.length>150?'…':'');
+
+    elogOk('Encode complete: '+result.totalChunks+' chunks, '+result.totalChars.toLocaleString()+' total chars');
+    if(result.wasComp)elogOk('Compression: '+fmt(result.origSize)+' → '+fmt(result.finalSize)+' ('+result.compRatio+'% saved)');
+    setSt('READY','ok');
+    window.pxPaused=false;
+
+  }catch(e){
+    elogErr('Encode failed: '+e.message);setSt('ERROR','err');
+    window.pxPaused=false;
+    console.error(e);
+  }
+  $('enc-btn').disabled=false;
+});
+
+// [MANIFEST] ────────────────────────────────────────────────────────────────────
+// Renders the chunk index table — index, byte range, raw size, HID char count,
+// and a truncated hash prefix so you can spot mismatches at a glance.
+function buildManifest(chunks){
+  $('manifest').style.display='block';
+  const tbody=$('manifest-body');tbody.innerHTML='';
+  chunks.forEach(ch=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="color:var(--a2)">${ch.index}</td>
+      <td style="color:var(--dm)">${ch.start.toLocaleString()}–${ch.end.toLocaleString()}</td>
+      <td class="hide-sm">${fmt(ch.size)}</td>
+      <td style="color:var(--a1)">${ch.chars.toLocaleString()}</td>
+      <td style="color:var(--dm);font-size:9px">${ch.hash.substr(0,14)}…</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// [SPEED] ──────────────────────────────────────────────────────────────────────
+// Calculates total injection time based on chars/sec + per-chunk delay.
+// Presets are tuned from real hardware testing — Flipper safe is the safest default.
+const PRESETS={fd:{c:300,d:120,o:0},ff:{c:550,d:80,o:0},ns:{c:250,d:200,o:0},nf:{c:700,d:80,o:0},cu:{c:null,d:null,o:null}};
+function setPreset(k){
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('on'));
+  const el=$('pr-'+k);if(el)el.classList.add('on');
+  const p=PRESETS[k];if(p.c!==null){$('cps').value=p.c;$('dms').value=p.d;$('ovs').value=p.o;}
+  recalcSpd();
+}
+function recalcSpd(){
+  if(!gChunks.length)return;
+  const cps=Math.max(1,+$('cps').value||300);
+  const dly=Math.max(0,+$('dms').value||120);
+  const ovh=Math.max(0,+$('ovs').value||0);
+  const n=gChunks.length;
+  const totalChars=gEncResult?gEncResult.totalChars:gChunks.reduce((s,c)=>s+c.chars,0);
+  const avg=Math.round(totalChars/n);
+  const tt=totalChars/cps,td=(n*dly)/1000,to=n*ovh,tot=tt+td+to;
+  $('sb-ch').textContent=totalChars.toLocaleString();$('sb-tm').textContent=h2s(tot);$('sb-pc').textContent=avg.toLocaleString();
+  $('sb-cps').textContent=cps;$('sb-ty').textContent=h2s(tt);
+  $('sb-cn').textContent=n;$('sb-dl').textContent=dly;$('sb-dt').textContent=h2s(td);
+  $('sb-on').textContent=n;$('sb-os').textContent=ovh;$('sb-ot').textContent=h2s(to);
+  $('sb-tot').textContent=h2s(tot);
+  // Show live ETA in the HID download panel
+  const actBtn=document.querySelector('.preset-btn.on');
+  const lbl=actBtn?actBtn.textContent:'Custom';
+  $('eta-val').textContent=h2s(tot)+' · '+lbl;
+  $('hid-eta').style.display='block';
+}
+
+// [COPY] ───────────────────────────────────────────────────────────────────────
+// Uses modern clipboard API with execCommand fallback for non-HTTPS contexts.
+// Salt/IV copy matters — operator needs these to reconstruct keys if file is lost.
+function copyField(id,btn){
+  const val=$(id).textContent;
+  navigator.clipboard.writeText(val).then(()=>{
+    btn.textContent='COPIED!';btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent='COPY';btn.classList.remove('ok');},2000);
+  }).catch(()=>{
+    // Fallback for non-HTTPS contexts
+    const ta=document.createElement('textarea');ta.value=val;
+    ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');btn.textContent='COPIED!';}
+    catch(e){btn.textContent='MANUAL';}
+    document.body.removeChild(ta);
+    setTimeout(()=>{btn.textContent='COPY';btn.classList.remove('ok');},2000);
+  });
+}
+
+/* ── Password visibility toggle ──────────────
+   Shared by enc-pwd (encode tab) and d-pwd (decode tab).
+   Toggling type between 'password' and 'text' is the
+   safest cross-browser way to show/hide a password field.
+─────────────────────────────────────────── */
+function togglePwdVis(id,btn){
+  var f=$(id);
+  if(f.type==='password'){f.type='text';btn.textContent='HIDE';}
+  else{f.type='password';btn.textContent='SHOW';}
+}
+
+// [DOWNLOADS] ──────────────────────────────────────────────────────────────────
+// Three output formats: HID text file (plain ibv1 strings), DuckyScript (.txt),
+// full JSON transfer bundle, and ZIP with individual .chunk files.
+// The HID text and DuckyScript formats are what actually get injected.
+$('dl-hid').addEventListener('click',()=>{
+  if(!gChunks.length)return;
+  const enc=gEncResult;
+  let header=`# 7YP3X-L1N3F33D v4 — HID-KBD TRANSFER\n# File: ${gFile.name}\n# Hash: ${gFileHash}\n# Chunks: ${gChunks.length}\n# Compressed: ${enc?.wasComp||false} | Encrypted: ${enc?.wasEnc||false}\n`;
+  if(enc?.wasEnc)header+=`# PASSWORD: ${$('er-pwd').textContent}\n`;
+  header+=`\n`;
+  dl(header+gChunks.map(c=>c.str).join('\n'),safeName(gFile.name)+'_hid.txt','text/plain');
+  elogOk('Downloaded HID strings ('+gChunks.length+' lines)');
+});
+$('dl-duck').addEventListener('click',()=>{
+  if(!gChunks.length)return;
+  const delay=+$('dms').value||120;
+  const enc=gEncResult;
+  let s=`REM 7YP3X-L1N3F33D v4 — DuckyScript\nREM File: ${gFile.name} | Chunks: ${gChunks.length}\nREM Hash: ${gFileHash}\nREM Enc: ${enc?.wasEnc||false}\n`;
+  if(enc?.wasEnc)s+=`REM PASSWORD: ${$('er-pwd').textContent}\n`;
+  s+=`\nREM Focus the decoder.html paste textarea, then run this script\nDELAY 2000\n\n`;
+  gChunks.forEach(ch=>{s+=`STRING ${ch.str}\nENTER\nDELAY ${delay}\n`;});
+  dl(s,safeName(gFile.name)+'_ducky.txt','text/plain');
+  elogOk('Downloaded DuckyScript ('+gChunks.length+' chunks, '+delay+'ms delay)');
+});
+$('dl-json').addEventListener('click',()=>{
+  if(!gChunks.length)return;
+  const enc=gEncResult;
+  // CRITICAL: chunks stored as plain strings — unambiguous for decoder
+  const obj={
+    protocol:'7YP3X-L1N3F33D-v4',
+    filename:gFile.name,
+    file_hash:gFileHash,
+    hash_algo:$('halg').value,
+    total_chunks:gChunks.length,
+    compressed:enc?.wasComp||false,
+    comp_algo:enc?.compAlgo||'none',
+    encrypted:enc?.wasEnc||false,
+    generated_at:new Date().toISOString(),
+    chunks:gChunks.map(c=>c.str)   // plain ibv1 strings
+  };
+  dl(JSON.stringify(obj,null,2),safeName(gFile.name)+'_transfer.json','application/json');
+  elogOk('Downloaded JSON ('+gChunks.length+' chunk strings)');
+});
+$('dl-zip').addEventListener('click',async()=>{
+  if(!gChunks.length){elogErr('Nothing to zip — encode first');return;}
+  // Basic zip without external deps using fetch-based approach
+  // Since JSZip is loaded from CDN, check if available
+  if(typeof JSZip==='undefined'){
+    elogErr('JSZip not loaded — check internet connection for admin console');
+    return;
+  }
+  setSt('ZIPPING','working');
+  try{
+    const zip=new JSZip();
+    const folder=zip.folder(safeName(gFile.name)+'_chunks');
+    gChunks.forEach(ch=>folder.file('chunk_'+String(ch.index).padStart(5,'0')+'.chunk',ch.str));
+    const enc=gEncResult;
+    folder.file('MANIFEST.json',JSON.stringify({
+      protocol:'7YP3X-L1N3F33D-v4',filename:gFile.name,file_hash:gFileHash,
+      total_chunks:gChunks.length,compressed:enc?.wasComp||false,
+      comp_algo:enc?.compAlgo||'none',encrypted:enc?.wasEnc||false,
+      generated_at:new Date().toISOString(),
+      chunks:gChunks.map(c=>c.str)  // same flat string array
+    },null,2));
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+    dl(blob,safeName(gFile.name)+'_chunks.zip','application/zip');
+    elogOk('Downloaded ZIP ('+gChunks.length+' chunks)');
+  }catch(e){elogErr('ZIP error: '+e.message);}
+  setSt('READY','ok');
+});
+
+// resetEncode — clears all session state and returns UI to initial state
+function resetEncode(){
+  gFile=null;gChunks=[];gFileHash='';gEncResult=null;
+  $('fi-input').value='';dz.style.display='block';
+  $('file-info').style.display='none';$('enc-btn').disabled=true;
+  ['precomp-warn','hash-pnl','manifest','spd-panel','hid-panel','reexport-panel','enc-result'].forEach(id=>$(id).style.display='none');
+  $('enc-progress').style.display='none';$('enc-opts').style.display='none';
+  $('enc-pwd').value='';$('etog').checked=false;
+  $('elog').innerHTML='<span class="l-d">// Reset.</span>';setSt('STANDBY','idle');
+}
+
+// [REEXPORT] ────────────────────────────────────────────────────────────────────
+// Lets you re-inject just the chunks that failed — paste a spec like
+// "0,5,10-20,100" and it generates a targeted DuckyScript or HID file.
+/* ── Chunk re-export ──────────────────────────
+   Parse a spec like "0,5,10-20,100" into
+   a sorted deduplicated array of chunk indices.
+   Silently ignores indices out of range.
+───────────────────────────────────────────── */
+function parseChunkSpec(spec,total){
+  const indices=new Set();
+  const parts=spec.split(',').map(s=>s.trim()).filter(Boolean);
+  for(const part of parts){
+    if(part.includes('-')){
+      const [a,b]=part.split('-').map(s=>parseInt(s.trim(),10));
+      if(isNaN(a)||isNaN(b)){elogWarn('Re-export: invalid range "'+part+'" — skipped');continue;}
+      const lo=Math.min(a,b),hi=Math.max(a,b);
+      for(let i=lo;i<=hi;i++)if(i>=0&&i<total)indices.add(i);
+    }else{
+      const n=parseInt(part,10);
+      if(isNaN(n)){elogWarn('Re-export: "'+part+'" is not a number — skipped');continue;}
+      if(n>=0&&n<total)indices.add(n);
+      else elogWarn('Re-export: chunk #'+n+' out of range (0–'+(total-1)+') — skipped');
+    }
+  }
+  return [...indices].sort((a,b)=>a-b);
+}
+
+function previewReex(){
+  if(!gChunks.length){$('reex-preview').textContent='No encoded data — encode a file first.';return;}
+  const spec=$('reex-input').value.trim();
+  if(!spec){$('reex-preview').textContent='Enter chunk numbers above.';return;}
+  const idx=parseChunkSpec(spec,gChunks.length);
+  if(!idx.length){
+    $('reex-preview').textContent='⚠ No valid chunk indices in that selection.';
+    $('reex-preview').style.color='var(--er)';return;
+  }
+  $('reex-preview').style.color='var(--ok)';
+  $('reex-preview').textContent='✓ '+idx.length+' chunk(s) selected: #'+idx[0]+(idx.length>1?' … #'+idx[idx.length-1]:'')+
+    ' | '+idx.reduce((s,i)=>s+gChunks[i].chars,0).toLocaleString()+' total chars';
+}
+
+// Live preview as user types
+$('reex-input').addEventListener('input',function(){if(gChunks.length)previewReex();});
+
+function reexport(mode){
+  if(!gChunks.length){elogErr('Re-export: no chunks — encode first');return;}
+  const spec=$('reex-input').value.trim();
+  if(!spec){elogErr('Re-export: enter chunk numbers first');return;}
+  const idx=parseChunkSpec(spec,gChunks.length);
+  if(!idx.length){elogErr('Re-export: no valid chunks in selection');return;}
+  const enc=gEncResult;
+  const delay=+$('dms').value||120;
+  let content='';
+  let filename='';
+  if(mode==='hid'){
+    content=`# 7YP3X-L1N3F33D — RE-INJECT PACKAGE\n# File: ${gFile?.name||'unknown'}\n# Re-injecting ${idx.length} chunk(s): ${idx.join(', ')}\n# Paste or inject into decoder textarea\n\n`;
+    content+=idx.map(i=>gChunks[i].str).join('\n');
+    filename=safeName(gFile?.name||'file')+'_reinject_chunks.txt';
+  }else{
+    content=`REM 7YP3X-L1N3F33D — RE-INJECT DUCKYSCRIPT\nREM File: ${gFile?.name||'unknown'}\nREM Re-injecting ${idx.length} chunk(s): ${idx.join(', ')}\nREM Focus decoder paste textarea then run\n\nDELAY 1500\n\n`;
+    content+=idx.map(i=>`STRING ${gChunks[i].str}\nENTER\nDELAY ${delay}`).join('\n');
+    filename=safeName(gFile?.name||'file')+'_reinject_ducky.txt';
+  }
+  dl(content,filename,'text/plain');
+  // Show result summary
+  const res=$('reex-result');
+  res.style.display='block';
+  res.innerHTML=`<span style="color:var(--ok)">✓ Exported ${idx.length} chunk(s)</span><br>
+    Chunks: ${idx.map(i=>'<span style="color:var(--a1)">#'+i+'</span>').join(' ')}<br>
+    Total chars: ${idx.reduce((s,i)=>s+gChunks[i].chars,0).toLocaleString()}<br>
+    File: <span style="color:var(--a2)">${esc(filename)}</span>`;
+  elogOk('Re-export: '+idx.length+' chunk(s) → '+filename);
+}
+
+// [DECODE] ──────────────────────────────────────────────────────────────────────
+// The encoder has a built-in decode mode (same IndexedDB as the standalone decoder).
+// This lets you test the full encode→inject→decode pipeline on one machine.
+/* ════════════════════════════════════════════
+   DECODE SYSTEM
+════════════════════════════════════════════ */
+const DDB='TYPEX_RX',DDBV=1,DCS='chunks',DMS='meta';
+let ddb=null,dMeta=null,dDecPwd='';
+
+function dlog2(m,t='d'){addLog($('dlog'),m,t);}
+const dlogOk=m=>dlog2(m,'ok');const dlogErr=m=>dlog2(m,'e');
+const dlogWarn=m=>dlog2(m,'w');const dlogInfo=m=>dlog2(m,'i');
+
+// IndexedDB helpers — thin wrappers that always return Promises.
+// DDB = database name, DCS = chunk store, DMS = meta store.
+function dbOpen(){return new Promise((res,rej)=>{
+  const r=indexedDB.open(DDB,DDBV);
+  r.onupgradeneeded=e=>{const d=e.target.result;
+    if(!d.objectStoreNames.contains(DCS))d.createObjectStore(DCS,{keyPath:'id'});
+    if(!d.objectStoreNames.contains(DMS))d.createObjectStore(DMS,{keyPath:'file_hash'});
+  };
+  r.onsuccess=e=>res(e.target.result);
+  r.onerror=e=>rej(new Error('IndexedDB: '+(e.target.error||'open failed')));
+});}
+function dbPut(st,obj){return new Promise((res,rej)=>{
+  try{const tx=ddb.transaction(st,'readwrite');
+    tx.objectStore(st).put(obj).onsuccess=()=>res();
+    tx.onerror=e=>rej(new Error('DB write: '+(e.target.error||'failed')));}
+  catch(e){rej(new Error('DB put: '+e.message));}
+});}
+function dbAll(st){return new Promise((res,rej)=>{
+  try{const tx=ddb.transaction(st,'readonly');
+    tx.objectStore(st).getAll().onsuccess=e=>res(e.target.result||[]);
+    tx.onerror=e=>rej(new Error('DB read: '+(e.target.error||'failed')));}
+  catch(e){rej(new Error('DB all: '+e.message));}
+});}
+function dbClr(st){return new Promise((res,rej)=>{
+  try{const tx=ddb.transaction(st,'readwrite');
+    tx.objectStore(st).clear().onsuccess=()=>res();
+    tx.onerror=e=>rej(new Error('DB clear: '+(e.target.error||'failed')));}
+  catch(e){rej(new Error('DB clear: '+e.message));}
+});}
+
+// parseIbv1 — parses a semicolon-delimited ibv1 string OR a JSON transfer file.
+// Returns null and logs if anything is malformed — never throws silently.
+function parseIbv1(line){
+  line=line.trim();
+  if(!line||line.startsWith('#'))return null;
+
+  /* ibv1 format — 12 required fields, field 13 = hex-encoded filename (optional) */
+  if(line.startsWith('ibv1;')){
+    const p=line.split(';');
+    if(p.length<12){
+      dlogErr('ibv1 line has '+p.length+' fields (need ≥12, ibv2 has 13) — chunk rejected');
+      return null;
+    }
+    const idx=parseInt(p[1],10);
+    if(isNaN(idx)||idx<0){
+      dlogErr('chunk_index is not a valid number ("'+p[1]+'") — chunk rejected');
+      return null;
+    }
+    // Field 13 (index 12): hex-encoded filename — decode if present
+    let filename='recovered_file';
+    const nameHex=p.length>12?(p[12]||''):'';
+    if(nameHex.length>0&&nameHex.length%2===0){
+      try{const nb=new Uint8Array(nameHex.length/2);for(let ni=0;ni<nb.length;ni++)nb[ni]=parseInt(nameHex.substr(ni*2,2),16);filename=new TextDecoder().decode(nb);}catch(xe){}
+    }
+    return{
+      protocol:'ibv1',
+      chunk_index:idx,
+      total_chunks:parseInt(p[2],10),
+      chunk_hash:p[3],
+      file_hash:p[4],
+      compressed:p[5]==='1',
+      comp_algo:p[6]||'none',
+      encrypted:p[7]==='1',
+      salt:p[8]||'0',
+      iv:p[9]||'0',
+      hash_algo:p[10]||'sha256',
+      data_hex:p[11]||'',
+      filename:filename
+    };
+  }
+
+  /* JSON transfer file */
+  try{
+    const o=JSON.parse(line);
+    /* Plain ibv1 string inside JSON wrapper */
+    if(typeof o==='string')return parseIbv1(o);
+    /* Full transfer JSON {protocol, chunks:[...strings...]} */
+    if(o.protocol&&o.chunks&&Array.isArray(o.chunks))return{_isTransferJson:true,obj:o};
+    /* Single chunk JSON object */
+    if(o.chunk_index!==undefined)return{...o,protocol:'json'};
+  }catch(e){}
+
+  dlogErr('Could not parse line (not ibv1 or JSON) — first 60 chars: "'+line.substr(0,60)+'"');
+  return null;
+}
+
+/* ── Hash hex data ────────────────────────── */
+async function hashHex(hexStr,algo){
+  const b=new Uint8Array(hexStr.length/2);
+  for(let i=0;i<b.length;i++)b[i]=parseInt(hexStr.substr(i*2,2),16);
+  const algoNorm=algo.replace(/^sha(\d+)$/,'SHA-$1');
+  const h=await crypto.subtle.digest(algoNorm,b.buffer);
+  return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// dProc — receives one parsed chunk, verifies its hash, checks it belongs to the
+// active transfer, then persists to IndexedDB. Returns true on success.
+async function dProc(parsed){
+  if(!parsed)return false;
+  if(parsed._isTransferJson)return false; // handled by caller
+
+  const idx=parsed.chunk_index;
+  if(isNaN(idx)||idx<0){dlogErr('Invalid chunk_index: '+idx);return false;}
+  if(!parsed.data_hex||parsed.data_hex.length===0){dlogErr('Chunk #'+idx+' has empty data_hex');return false;}
+  if(parsed.data_hex.length%2!==0){dlogErr('Chunk #'+idx+' data_hex has odd length ('+parsed.data_hex.length+') — corrupt');return false;}
+
+  /* Cross-transfer protection */
+  if(dMeta&&dMeta.file_hash!==parsed.file_hash){
+    dlogErr('Chunk #'+idx+' belongs to a different transfer (hash mismatch) — use CLEAR first');return false;
+  }
+
+  /* Initialize transfer metadata from first chunk */
+  if(!dMeta){
+    dMeta={
+      file_hash:parsed.file_hash,total_chunks:parsed.total_chunks,
+      filename:parsed.filename||'recovered_file',
+      hash_algo:parsed.hash_algo||'sha256',
+      compressed:!!parsed.compressed,comp_algo:parsed.comp_algo||'none',
+      encrypted:!!parsed.encrypted,salt:parsed.salt||'0',iv:parsed.iv||'0'
+    };
+    try{await dbPut(DMS,dMeta);}
+    catch(e){dlogErr('Could not save metadata: '+e.message);}
+    dlogInfo('Transfer started: '+dMeta.total_chunks+' chunks | comp:'+dMeta.compressed+' | enc:'+dMeta.encrypted);
+    dRefreshUI();
+  }
+
+  /* Verify chunk hash */
+  let computed;
+  try{computed=await hashHex(parsed.data_hex,dMeta.hash_algo);}
+  catch(e){dlogErr('Hash error chunk #'+idx+': '+e.message);return false;}
+  if(computed!==parsed.chunk_hash){
+    dlogErr('✗ HASH MISMATCH chunk #'+String(idx).padStart(4,'0')+'  got:'+computed.substr(0,12)+'…  want:'+parsed.chunk_hash.substr(0,12)+'…');
+    return false;
+  }
+
+  /* Store in IndexedDB */
+  try{
+    await dbPut(DCS,{
+      id:dMeta.file_hash+':'+idx,
+      file_hash:dMeta.file_hash,
+      chunk_index:idx,
+      chunk_hash:parsed.chunk_hash,
+      chunk_size:parsed.data_hex.length/2,
+      data_hex:parsed.data_hex
+    });
+  }catch(e){dlogErr('Store failed chunk #'+idx+': '+e.message);return false;}
+
+  dlogOk('✓ #'+String(idx).padStart(4,'0')+' stored ('+parsed.data_hex.length/2+' B)');
+  return true;
+}
+
+/* ── Process lines array ──────────────────── */
+async function dProcLines(lines){
+  let ok=0,fail=0;
+  for(const line of lines){
+    const parsed=parseIbv1(line);
+    if(!parsed){fail++;continue;}
+    if(parsed._isTransferJson){
+      // Full JSON blob — process each chunk string
+      const o=parsed.obj;
+      if(!o.chunks||!Array.isArray(o.chunks)){dlogErr('JSON has no chunks array');fail++;continue;}
+      for(const chunkStr of o.chunks){
+        const r=await dProc(parseIbv1(chunkStr));
+        r?ok++:fail++;
+      }
+      continue;
+    }
+    const r=await dProc(parsed);
+    r?ok++:fail++;
+  }
+  return{ok,fail};
+}
+
+async function dDoFiles(){
+  const files=$('d-fs').files;
+  if(!files.length){dlogWarn('No files selected');return;}
+  let totalOk=0,totalFail=0;
+  for(const f of files){
+    try{
+      const text=await f.text();
+      const trimmed=text.trim();
+      // JSON transfer files must be parsed as a whole — not line-by-line
+      // (pretty-printed JSON lines have trailing commas that break per-line parsing)
+      if(trimmed[0]==='{'){
+        try{
+          const obj=JSON.parse(trimmed);
+          if(obj.chunks&&Array.isArray(obj.chunks)){
+            dlogInfo(f.name+': JSON transfer — '+obj.chunks.length+' chunks');
+            let ok=0,fail=0;
+            for(const cs of obj.chunks){const r=await dProc(parseIbv1(cs));r?ok++:fail++;}
+            totalOk+=ok;totalFail+=fail;continue;
+          }
+        }catch(je){dlogWarn(f.name+': JSON parse failed — trying as plain text');}
+      }
+      // DuckyScript: extract STRING lines; otherwise treat as plain ibv1 list
+      const duck=text.split('\n').filter(l=>l.trim().startsWith('STRING ')).map(l=>l.trim().substr(7));
+      const allLines=duck.length?duck:text.split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('#')&&!l.startsWith('REM')&&!l.startsWith('DELAY')&&!l.startsWith('ENTER')&&!l.startsWith('STRING '));
+      if(!allLines.length){dlogWarn(f.name+': no valid lines found');totalFail++;continue;}
+      dlogInfo('Processing '+f.name+' ('+allLines.length+' lines)...');
+      const{ok,fail}=await dProcLines(allLines);
+      totalOk+=ok;totalFail+=fail;
+    }catch(e){dlogErr('Read '+f.name+' failed: '+e.message);totalFail++;}
+  }
+  dlog2(totalOk+' chunks accepted, '+totalFail+' failed',totalOk>0?'ok':'w');
+  dRefreshUI();
+}
+
+async function dDoPaste(){
+  const text=$('d-paste').value.trim();
+  if(!text){dlogWarn('Paste area empty');return;}
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('#'));
+  const{ok,fail}=await dProcLines(lines);
+  dlog2(ok+' accepted, '+fail+' failed',ok>0?'ok':'w');
+  if(ok>0)$('d-paste').value='';
+  dRefreshUI();
+}
+
+/* ── Auto-process on Enter (for DuckyScript injection) ── */
+$('d-paste').addEventListener('keydown',async function(e){
+  if(e.key==='Enter'){
+    const lines=this.value.split('\n');
+    const last=lines[lines.length-1].trim();
+    if(last.startsWith('ibv1;')){
+      e.preventDefault();
+      const parsed=parseIbv1(last);
+      if(parsed){
+        const ok=await dProc(parsed);
+        if(ok){this.value='';dRefreshUI();}
+      }
+    }
+    // If it doesn't start with ibv1; let the newline through naturally
+  }
+});
+
+function dSetPwd(){
+  const pwd=($('d-pwd').value||'').trim();
+  if(!pwd){$('d-pwd-status').textContent='Password cannot be empty';$('d-pwd-status').style.color='var(--er)';return;}
+  dDecPwd=pwd;$('d-pwd-status').textContent='✓ Password confirmed — click ASSEMBLE';
+  $('d-pwd-status').style.color='var(--ok)';dlogOk('Decryption password set');
+}
+
+async function dReVerify(){
+  if(!dMeta){dlogWarn('No active transfer');return;}
+  const all=await dbAll(DCS).catch(e=>{dlogErr('Read failed: '+e.message);return[];});
+  if(!all.length){dlogWarn('No chunks stored');return;}
+  dlogInfo('Re-verifying '+all.length+' chunks...');
+  let ok=0,fail=0;
+  for(const rec of all){
+    try{
+      const h=await hashHex(rec.data_hex,dMeta.hash_algo);
+      if(h===rec.chunk_hash)ok++;
+      else{fail++;dlogErr('✗ CORRUPTED chunk #'+rec.chunk_index+' — re-inject');}
+    }catch(e){fail++;dlogErr('Verify error chunk #'+rec.chunk_index+': '+e.message);}
+  }
+  dlog2('Re-verify: '+ok+' OK, '+fail+' corrupted',fail>0?'e':'ok');
+  dRefreshUI();
+}
+
+async function dDlMiss(){
+  if(!dMeta)return;
+  const all=await dbAll(DCS).catch(()=>[]);
+  const got=new Set(all.map(r=>r.chunk_index));
+  const miss=[];for(let i=0;i<dMeta.total_chunks;i++)if(!got.has(i))miss.push(i);
+  if(!miss.length){dlogOk('No missing chunks');return;}
+  dl('# 7YP3X-L1N3F33D — Missing Chunks\n# File: '+dMeta.filename+'\n# Hash: '+dMeta.file_hash+'\n# Missing: '+miss.length+'/'+dMeta.total_chunks+'\n\n'+miss.join('\n'),
+    'missing_chunks.txt','text/plain');
+  dlogWarn('Exported '+miss.length+' missing indices');
+}
+
+async function dAssemble(){
+  if(!dMeta){dlogWarn('No active transfer');return;}
+  if(dMeta.encrypted&&!dDecPwd){
+    dlogErr('Transfer encrypted — enter password first');
+    $('d-pwdbox').style.display='block';$('d-pwd').focus();return;
+  }
+  const all=await dbAll(DCS).catch(e=>{dlogErr('DB read failed: '+e.message);return[];});
+  all.sort((a,b)=>a.chunk_index-b.chunk_index);
+  if(all.length!==dMeta.total_chunks){
+    dlogErr('Cannot assemble: '+( dMeta.total_chunks-all.length)+' chunks still missing');return;
+  }
+  for(let i=0;i<all.length;i++){
+    if(all[i].chunk_index!==i){dlogErr('Sequence error at position '+i+' (got chunk #'+all[i].chunk_index+') — storage corrupted');return;}
+  }
+  $('d-assemble-progress').style.display='block';
+  $('d-abtn').disabled=true;
+  window.pxPaused=true;
+  function dprog(pct,lbl){
+    $('d-prog-fill').style.width=pct+'%';$('d-prog-pct').textContent=Math.round(pct)+'%';
+    $('d-prog-lbl').textContent=lbl;
+  }
+  dlogInfo('Assembling '+all.length+' chunks...');
+  try{
+    const result=await workerCallWithBuffer('ASSEMBLE',{
+      chunks:all.map(r=>({chunk_index:r.chunk_index,data_hex:r.data_hex})),
+      meta:{...dMeta},
+      password:dDecPwd
+    },(pct,lbl)=>dprog(pct,lbl),(msg)=>dlogWarn(msg));
+    dl(result.buffer,dMeta.filename,'application/octet-stream');
+    dlogOk('✓ File verified and downloaded: '+dMeta.filename+' ('+fmt(result.size)+')');
+    $('d-main').innerHTML='<span style="color:var(--ok)">✓ COMPLETE — '+esc(dMeta.filename)+'</span>';
+  }catch(e){
+    dlogErr('Assembly failed: '+e.message);
+    $('d-main').innerHTML='<span style="color:var(--er)">✗ FAILED — '+esc(e.message)+'</span>';
+  }
+  window.pxPaused=false;
+  $('d-abtn').disabled=false;
+}
+
+async function dClear(){
+  if(!confirm('Clear all stored chunks and transfer state? Settings are kept.'))return;
+  try{await dbClr(DCS);await dbClr(DMS);}
+  catch(e){dlogErr('Clear failed: '+e.message);return;}
+  dMeta=null;dDecPwd='';
+  $('d-pwd').value='';$('d-pwd-status').textContent='';
+  $('d-pwdbox').style.display='none';$('d-assemble-progress').style.display='none';
+  dlogWarn('Transfer cleared');dRefreshUI();
+}
+
+async function clearAllData(){
+  // Single confirm here — bypasses dClear()'s own dialog to avoid double-prompt
+  if(!confirm('Clear ALL transfer data from IndexedDB?\n(Settings and theme are preserved)'))return;
+  try{await dbClr(DCS);await dbClr(DMS);}
+  catch(e){dlogErr('Clear failed: '+e.message);return;}
+  dMeta=null;dDecPwd='';
+  $('d-pwd').value='';$('d-pwd-status').textContent='';
+  $('d-pwdbox').style.display='none';$('d-assemble-progress').style.display='none';
+  dlogWarn('Transfer cleared');dRefreshUI();
+  closeSd();
+}
+
+function exportSettings(){
+  const s=loadSettings();dl(JSON.stringify(s,null,2),'typex_cfg.json','application/json');
+}
+
+/* ── Decode input tabs ────────────────────── */
+function switchDecTab(name){
+  ['file','paste'].forEach(n=>{
+    $('dti-'+n).classList.toggle('on',n===name);
+    $('dtp-'+n).classList.toggle('on',n===name);
+  });
+}
+
+/* ── Refresh decode UI ────────────────────── */
+async function dRefreshUI(){
+  let all=[],metaAll=[];
+  try{all=await dbAll(DCS);metaAll=await dbAll(DMS);}
+  catch(e){dlogErr('UI refresh DB error: '+e.message);}
+  if(!dMeta&&metaAll.length>0){
+    dMeta=metaAll[0];
+    dlogInfo('Resumed: '+dMeta.filename+' ('+dMeta.total_chunks+' chunks)');
+  }
+  if(!dMeta){
+    $('d-main').innerHTML='<span style="color:var(--wn)">◉ WAITING FOR CHUNKS</span>';
+    $('d-detail').textContent='No active transfer.';
+    $('d-fill').style.width='0%';$('d-pct').style.display='none';
+    $('d-tinfo').style.display='none';$('d-mapwrap').style.display='none';
+    $('d-pwdbox').style.display='none';
+    $('d-abtn').disabled=true;$('d-vbtn').disabled=true;$('d-mbtn').disabled=true;
+    return;
+  }
+  const got=all.length,tot=dMeta.total_chunks,done=got===tot;
+  $('d-main').innerHTML=done
+    ?'<span style="color:var(--ok)">✓ ALL '+tot+' CHUNKS RECEIVED — READY</span>'
+    :'<span style="color:var(--wn)">◉ '+got+'/'+tot+' CHUNKS RECEIVED</span>';
+  $('d-detail').textContent=done
+    ?(dMeta.encrypted&&!dDecPwd?'Set decryption password then click ASSEMBLE':'Click ASSEMBLE to reconstruct '+dMeta.filename)
+    :(tot-got)+' chunk(s) still missing';
+  $('d-fill').style.width=(got/tot*100)+'%';
+  $('d-pct').style.display='block';$('d-pct').textContent=got+' / '+tot;
+
+  // Transfer info
+  $('d-tinfo').style.display='block';
+  $('d-fn').textContent=dMeta.filename;
+  $('d-cn').textContent=got+'/'+tot;
+  $('d-comp').textContent=dMeta.compressed?'YES — '+dMeta.comp_algo:'NO';
+  $('d-comp').style.color=dMeta.compressed?'var(--a3)':'var(--d2)';
+  $('d-enc').textContent=dMeta.encrypted?'YES (AES-256-GCM)':'NO';
+  $('d-enc').style.color=dMeta.encrypted?'var(--wn)':'var(--d2)';
+  $('d-hash-algo').textContent=dMeta.hash_algo.toUpperCase();
+
+  // Password prompt
+  if(dMeta.encrypted&&done&&!dDecPwd)$('d-pwdbox').style.display='block';
+  else if(dDecPwd)$('d-pwdbox').style.display='none';
+
+  // Chunk map
+  $('d-mapwrap').style.display='block';
+  const gotSet=new Set(all.map(r=>r.chunk_index));
+  const map=$('d-map');map.innerHTML='';
+  for(let i=0;i<tot;i++){
+    const cell=document.createElement('div');
+    cell.className='cm'+(gotSet.has(i)?' got':'');
+    cell.title='#'+i;
+    map.appendChild(cell);
+  }
+
+  $('d-abtn').disabled=!done;
+  $('d-vbtn').disabled=got===0;
+  const miss=tot-got;$('d-mbtn').disabled=miss===0;
+}
+
+// [TOOLS] ───────────────────────────────────────────────────────────────────────
+// Self-test does a full encode→chunk→reassemble→verify round-trip on synthetic data.
+// Run this before any real injection to confirm the pipeline is working.
+/* ════════════════════════════════════════════
+   TOOLS TAB
+════════════════════════════════════════════ */
+async function runSelfTest(useEncryption){
+  const el=$('selftest-result');
+  el.style.display='block';
+  el.className='';
+  el.innerHTML='<span style="color:var(--a2)">Running self-test'+(useEncryption?' with encryption':'')+'...</span>';
+  try{
+    const result=await workerCall('SELF_TEST',{useEncryption},
+      (pct,msg)=>{el.innerHTML='<span style="color:var(--a2)">'+pct+'% — '+esc(msg)+'</span>';},
+      null
+    );
+    el.className='test-ok';
+    el.innerHTML=`✓ SELF-TEST PASSED<br>
+      Chunks: ${result.chunks} · Encryption: ${result.useEncryption?'✓':'—'}<br>
+      Chunking, hashing, assembly, ${result.useEncryption?'encryption, decryption, ':''}hash verification — all OK`;
+  }catch(e){
+    el.className='test-fail';
+    el.innerHTML='✗ SELF-TEST FAILED<br>'+esc(e.message);
+  }
+}
+
+function checkCaps(){
+  const el=$('caps-list');if(!el)return;
+  const checks=[
+    ['Web Crypto API',()=>!!crypto.subtle],
+    ['IndexedDB',()=>!!window.indexedDB],
+    ['CompressionStream',()=>typeof CompressionStream!=='undefined'],
+    ['DecompressionStream',()=>typeof DecompressionStream!=='undefined'],
+    ['Web Workers',()=>typeof Worker!=='undefined'],
+    ['Clipboard API',()=>!!navigator.clipboard],
+    ['File API',()=>!!window.File],
+    ['Blob + URL',()=>!!(window.Blob&&URL.createObjectURL)],
+    ['SharedArrayBuffer',()=>typeof SharedArrayBuffer!=='undefined'],
+  ];
+  el.innerHTML=checks.map(([name,check])=>{
+    let ok=false;try{ok=check();}catch(e){}
+    return`<span style="color:${ok?'var(--ok)':'var(--er)'}">${ok?'■':'□'} ${name}${ok?'':' — NOT AVAILABLE'}</span>`;
+  }).join('<br>');
+}
+
+// [INIT] ─────────────────────────────────────────────────────────────────────────
+// Startup order matters: theme first (avoids FOUC), then IndexedDB (async),
+// then capability checks, then worker pre-warm so first encode is instant.
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+(async function init(){
+
+  // Build theme list + apply saved theme
+  buildThemeList();
+  applyTheme(S.theme&&THEMES[S.theme]?S.theme:'iron',false);
+
+  // Restore saved settings
+  if(S.chunkSize){$('csl').value=S.chunkSize;const v=S.chunkSize;const hidKB=Math.round((v*2+200)/1024*10)/10;const rawStr=v>=1024?(v/1024).toFixed(v%1024===0?0:1)+' KB':v+' B';$('csv').textContent=rawStr+' raw · ~'+hidKB+' KB HID';}
+  if(S.hashAlgo)$('halg').value=S.hashAlgo;
+  if(S.compAlgo)$('calg').value=S.compAlgo;
+  // Compression is OFF by default; only restore if explicitly saved as true
+  if(S.compress===true){$('ctog').checked=true;$('calg-row').style.opacity='1';}
+
+  // NOTE: Encryption toggle deliberately NOT restored from localStorage.
+  // Auto-re-enabling encryption on reload could encrypt without the user noticing.
+  // Deliberately NOT restoring the encrypt toggle from localStorage.
+  // If the user reloads mid-session we don't want crypto silently re-enabled —
+  // the operator needs to consciously set the password again each time.
+  // Compression is fine to auto-restore; encryption is too consequential.
+
+  // (particle canvas initialised separately at bottom of page)
+
+  // Init decode DB
+  try{
+    ddb=await dbOpen();
+    dlogInfo('IndexedDB ready');
+    await dRefreshUI();
+    dlogOk('Decode mode ready');
+  }catch(e){
+    dlogErr('IndexedDB failed: '+e.message+'\n(Private/incognito mode may block storage)');
+  }
+
+  // Check capabilities
+  checkCaps();
+
+  // Pre-warm worker
+  try{getWorker();elogInfo('Worker initialized');}
+  catch(e){elogErr('Worker failed: '+e.message);}
+
+  // Capability warnings
+  if(!crypto.subtle)elogErr('⚠ Web Crypto API unavailable — run on HTTPS or localhost');
+  if(typeof CompressionStream==='undefined')elogWarn('CompressionStream unavailable — compression not supported in this browser');
+
+  elogOk('TX-T3RM1N4L v4.0 ready');
+  setSt('STANDBY','idle');
+  encLoadStealth();encSyncStealthUI();
+})();
+
+// [STEALTH] ─────────────────────────────────────────────────────────────────────
+// Black screen overlay — hides the page instantly when a teacher / IT walks past.
+// Key combo on desktop, triple-tap on mobile.
+// LED dot: tiny status indicator visible through the black screen when enabled.
+// Animation toggle: kill the particle canvas on low-end hardware or for focus.
+/* ─────────────────────────────────────────
+   ENCODER STEALTH OVERLAY + ANIMATIONS
+   Stored in localStorage 'typex_stealth'.
+   Stealth, LED dot, and animation toggle
+   all persist independently.
+───────────────────────────────────────── */
+var encStCfg={enabled:false,combo:'Ctrl+Shift+H',showLed:false};
+function encLoadStealth(){
+  try{var s=JSON.parse(localStorage.getItem('typex_stealth')||'{}');
+    if(s.enabled!==undefined)encStCfg.enabled=!!s.enabled;
+    if(s.combo)encStCfg.combo=s.combo;
+    if(s.showLed!==undefined)encStCfg.showLed=!!s.showLed;
+    // Animation setting stored separately for clarity
+    if(s.animOff)encApplyAnim(false,false);
+  }catch(e){}
+}
+function encSaveStealth(){
+  encStCfg.enabled=$('enc-s-stealth').checked;
+  encStCfg.combo=($('enc-s-combo').value||'Ctrl+Shift+H').trim();
+  encStCfg.showLed=$('enc-s-led').checked;
+  try{
+    var cur={};try{cur=JSON.parse(localStorage.getItem('typex_stealth')||'{}');}catch(x){}
+    cur.enabled=encStCfg.enabled;cur.combo=encStCfg.combo;cur.showLed=encStCfg.showLed;
+    localStorage.setItem('typex_stealth',JSON.stringify(cur));
+  }catch(e){}
+  $('enc-s-combo-row').style.display=encStCfg.enabled?'block':'none';
+  // Sync LED visibility class
+  var led=$('enc-st-led');if(led)led.classList.toggle('vis',encStCfg.showLed);
+}
+function encSaveAnim(){
+  var on=$('enc-s-anim').checked;
+  encApplyAnim(on,true);
+}
+function encApplyAnim(on,save){
+  window.pxDisabled=!on;
+  var cv=document.getElementById('px-canvas');
+  if(cv)cv.style.visibility=on?'visible':'hidden';
+  if(save){
+    try{var s={};try{s=JSON.parse(localStorage.getItem('typex_stealth')||'{}');}catch(x){}
+      s.animOff=!on;localStorage.setItem('typex_stealth',JSON.stringify(s));}catch(e){}
+  }
+  // Sync checkbox to actual state
+  var el=$('enc-s-anim');if(el)el.checked=on;
+}
+function encSyncStealthUI(){
+  $('enc-s-stealth').checked=encStCfg.enabled;
+  $('enc-s-combo').value=encStCfg.combo;
+  $('enc-s-combo-row').style.display=encStCfg.enabled?'block':'none';
+  $('enc-s-led').checked=encStCfg.showLed;
+  var led=$('enc-st-led');if(led)led.classList.toggle('vis',encStCfg.showLed);
+}
+function encStOn(){$('enc-stealth').classList.add('on');}
+function encStOff(){$('enc-stealth').classList.remove('on');}
+var encCapTarget=null;
+function encCapCombo(f){
+  // Clear any previous capture target before starting a new one
+  if(encCapTarget){encCapTarget.value=encCapTarget._prev||'';encCapTarget.style.borderColor='';encCapTarget=null;}
+  encCapTarget=f;f._prev=f.value;f.value='Press combo...';f.style.borderColor='var(--a1)';
+}
+/* ── Mobile long-press stealth (header bar) ────────────────────
+   Hold finger on the header for 800 ms to toggle stealth overlay.
+   touchmove or touchend before the timer fires cancels the action.
+──────────────────────────────────────────────────────────────── */
+(function(){
+  var _t=null;
+  var _el=document.querySelector('.hdr');
+  if(!_el)return;
+  _el.addEventListener('touchstart',function(e){
+    _t=setTimeout(function(){
+      _t=null;
+      $('enc-stealth').classList.contains('on')?encStOff():encStOn();
+    },800);
+  },{passive:true});
+  function _cancel(){if(_t){clearTimeout(_t);_t=null;}}
+  _el.addEventListener('touchend',_cancel);
+  _el.addEventListener('touchmove',_cancel);
+})();
+
+document.addEventListener('keydown',function(e){
+  if(encCapTarget){
+    e.preventDefault();
+    var p=[];
+    if(e.ctrlKey)p.push('Ctrl');if(e.altKey)p.push('Alt');
+    if(e.shiftKey)p.push('Shift');if(e.metaKey)p.push('Meta');
+    var k=e.key;if(!['Control','Alt','Shift','Meta'].includes(k))p.push(k.length===1?k.toUpperCase():k);
+    if(p.length>=2){encCapTarget.value=p.join('+');encCapTarget.style.borderColor='';encCapTarget=null;encSaveStealth();}
+    return;
+  }
+  if(!encStCfg.enabled)return;
+  var p2=[];
+  if(e.ctrlKey)p2.push('Ctrl');if(e.altKey)p2.push('Alt');
+  if(e.shiftKey)p2.push('Shift');if(e.metaKey)p2.push('Meta');
+  var k2=e.key;if(!['Control','Alt','Shift','Meta'].includes(k2))p2.push(k2.length===1?k2.toUpperCase():k2);
+  if(p2.join('+')===encStCfg.combo){e.preventDefault();$('enc-stealth').classList.contains('on')?encStOff():encStOn();}
+});
+
+// ── Mobile stealth trigger ────────────────────────────────────────────────
+// No keyboard on mobile so we use a triple-tap gesture.
+// Tap 3 times in < 600ms on any non-interactive part of the page.
+// Same toggle effect as the key combo — easy to fire intentionally, hard to fire by accident.
+(function(){
+  var tc=0, tt=null;
+  document.addEventListener('touchend', function(e){
+    // Don't fire when the user taps a real control
+    var el=e.target;
+    while(el && el!==document.body){
+      if(/^(BUTTON|INPUT|SELECT|TEXTAREA|A|LABEL)$/.test(el.tagName))return;
+      el=el.parentNode;
+    }
+    tc++;
+    clearTimeout(tt);
+    tt=setTimeout(function(){tc=0;},600);
+    if(tc>=3){
+      tc=0;clearTimeout(tt);
+      $('enc-stealth').classList.contains('on')?encStOff():encStOn();
+    }
+  },{passive:true});
+})();
+</script>
+<!-- JSZip for ZIP export — admin console only, internet required -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+// [PARTICLES] ────────────────────────────────────────────────────────────────────
+// Animated dot+line particle canvas. Runs in its own IIFE, fully decoupled from
+// the rest of the app. Pauses automatically during heavy crypto operations
+// (pxPaused flag) and respects the user's animation off preference (pxDisabled).
+// Theme colour lerp: smoothly transitions the particle colour when theme changes.
+(function(){
+  const cv=document.getElementById('px-canvas');
+  const ctx=cv.getContext('2d');
+
+  let fromRgb=[232,146,42],toRgb=[232,146,42],lerpT=1;
+  function hexToRgb(h){h=h.replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];}
+  function currentRgb(){const t=Math.min(lerpT,1);return[Math.round(fromRgb[0]+(toRgb[0]-fromRgb[0])*t),Math.round(fromRgb[1]+(toRgb[1]-fromRgb[1])*t),Math.round(fromRgb[2]+(toRgb[2]-fromRgb[2])*t)];}
+  window.pxSetColor=function(hex){fromRgb=currentRgb();toRgb=hexToRgb(hex);lerpT=0;};
+  // pxPaused: skip draw during heavy crypto ops (set by encoder JS)
+  // pxDisabled: user preference — read from localStorage so it persists across reload
+  window.pxPaused=false;
+  (function(){
+    try{var s=JSON.parse(localStorage.getItem('typex_stealth')||'{}');window.pxDisabled=!!s.animOff;}
+    catch(e){window.pxDisabled=false;}
+    var cv2=document.getElementById('px-canvas');
+    if(cv2)cv2.style.visibility=window.pxDisabled?'hidden':'visible';
+  })();
+
+  let W=0,H=0;
+  function resize(){
+    const nw=window.innerWidth,nh=window.innerHeight;
+    // Ignore small height-only changes from mobile address bar show/hide (~56px)
+    if(Math.abs(nw-W)<5&&Math.abs(nh-H)<160)return;
+    W=nw;H=nh;cv.width=W;cv.height=H;
+  }
+  resize();
+  let rsT=0;window.addEventListener('resize',function(){clearTimeout(rsT);rsT=setTimeout(resize,250);});
+
+  function targetCount(){const m=W<768;return Math.min(Math.floor((W*H)/(m?5500:12000)),m?90:130);}
+
+  const MIN_SPD=0.18,BASE_SPD=0.55;
+  function makeSpd(){return(Math.random()*BASE_SPD+MIN_SPD)*(Math.random()<.5?1:-1);}
+  let dots=[];
+  function initDots(){
+    const n=targetCount();dots=[];
+    for(let i=0;i<n;i++)dots.push({x:Math.random()*W,y:Math.random()*H,vx:makeSpd(),vy:makeSpd(),r:Math.random()*1.6+0.9,cx:0,cy:0,cn:0});
+  }
+  initDots();
+
+  let mx=-9999,my=-9999;
+  window.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;});
+  window.addEventListener('mouseleave',function(){mx=-9999;my=-9999;});
+  window.addEventListener('touchmove',function(e){if(e.touches.length){mx=e.touches[0].clientX;my=e.touches[0].clientY;}},{passive:true});
+  window.addEventListener('touchend',function(){mx=-9999;my=-9999;});
+
+  // Tuning constants
+  const CONNECT=130;   // line draw threshold (px)
+  const REPEL=100;     // pointer repulsion radius (px)
+  const FORCE=0.22;    // pointer repulsion strength
+  const DAMP=0.985;    // velocity damping per frame
+  const CROWD_R=50;    // neighbour proximity radius for clustering detection (px)
+  const CROWD_T=6;     // neighbour count that triggers scatter
+  const CROWD_F=0.032; // scatter force strength — gentle enough to look natural
+
+  let last=0;
+  function frame(ts){
+    requestAnimationFrame(frame);
+    if(window.pxDisabled||window.pxPaused){last=ts;return;} // skip when disabled or during crypto
+    const dt=Math.min(ts-last,50);last=ts;
+    const step=dt/16;
+    lerpT=Math.min(lerpT+dt/800,1);
+    const[r,g,b]=currentRgb();
+    ctx.clearRect(0,0,W,H);
+
+    // ── O(n²) pass: accumulate crowd pressure + draw connection lines ──────────
+    // Crowd forces computed here are applied in the movement pass below.
+    // Using the existing pair loop means zero extra iterations.
+    for(let i=0;i<dots.length;i++){dots[i].cx=0;dots[i].cy=0;dots[i].cn=0;}
+    for(let i=0;i<dots.length-1;i++){
+      for(let j=i+1;j<dots.length;j++){
+        const dx=dots[i].x-dots[j].x,dy=dots[i].y-dots[j].y;
+        const d2=dx*dx+dy*dy;
+        if(d2<CROWD_R*CROWD_R&&d2>0){
+          // Each dot tracks how many neighbours are too close
+          dots[i].cn++;dots[j].cn++;
+          // Accumulate outward direction vector (normalised)
+          const inv=1/Math.sqrt(d2);
+          dots[i].cx+=dx*inv;dots[i].cy+=dy*inv;
+          dots[j].cx-=dx*inv;dots[j].cy-=dy*inv;
+        }
+        if(d2<CONNECT*CONNECT){
+          const alpha=(1-Math.sqrt(d2)/CONNECT)*0.28;
+          ctx.beginPath();ctx.moveTo(dots[i].x,dots[i].y);ctx.lineTo(dots[j].x,dots[j].y);
+          ctx.strokeStyle=`rgba(${r},${g},${b},${alpha})`;ctx.lineWidth=0.7;ctx.stroke();
+        }
+      }
+    }
+
+    // ── Per-dot pass: apply forces, move, bounce, draw ────────────────────────
+    for(let i=0;i<dots.length;i++){
+      const d=dots[i];
+
+      // Crowd scatter — kicks in smoothly when cn reaches threshold
+      if(d.cn>=CROWD_T){
+        const excess=d.cn-CROWD_T+1;
+        const strength=CROWD_F*excess/(d.cn+1);
+        d.vx+=d.cx*strength;d.vy+=d.cy*strength;
+      }
+
+      // Pointer repulsion
+      const pdx=d.x-mx,pdy=d.y-my,pd2=pdx*pdx+pdy*pdy;
+      if(pd2<REPEL*REPEL&&pd2>0){const pd=Math.sqrt(pd2);const s=FORCE*(1-pd/REPEL);d.vx+=pdx/pd*s;d.vy+=pdy/pd*s;}
+
+      d.vx*=DAMP;d.vy*=DAMP;
+      d.x+=d.vx*step;d.y+=d.vy*step;
+
+      // Wall bounce
+      if(d.x-d.r<0){d.x=d.r;d.vx=Math.abs(d.vx);}
+      else if(d.x+d.r>W){d.x=W-d.r;d.vx=-Math.abs(d.vx);}
+      if(d.y-d.r<0){d.y=d.r;d.vy=Math.abs(d.vy);}
+      else if(d.y+d.r>H){d.y=H-d.r;d.vy=-Math.abs(d.vy);}
+
+      // Minimum speed guard — prevents dots stalling to zero
+      const spd=Math.sqrt(d.vx*d.vx+d.vy*d.vy);
+      if(spd<MIN_SPD&&spd>0){const k=MIN_SPD/spd;d.vx*=k;d.vy*=k;}
+
+      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${r},${g},${b},.75)`;ctx.fill();
+    }
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

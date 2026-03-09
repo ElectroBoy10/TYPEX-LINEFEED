@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title id="pg-title">7YP3X::RX-L1T3</title>
+<style>
+:root{--bg:#0c0c0c;--bg2:#141414;--bd:#2a2a2a;--tx:#f0f0f0;--tx2:#aaaaaa;--tx3:#666;--ac:#e8922a;--ok:#2ee87a;--er:#f55050;--wn:#f5c840;--fn:'Courier New',Courier,monospace}
+body.light{--bg:#f5f5f0;--bg2:#ebebeb;--bd:#cccccc;--tx:#111111;--tx2:#444;--tx3:#888;--ac:#c06810;--ok:#1a9050;--er:#cc2020;--wn:#a07010}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--fn);font-size:13px;padding:16px;max-width:600px;margin:0 auto;padding-bottom:40px;min-height:100vh;transition:background .2s,color .2s}
+#stealth{position:fixed;inset:0;background:#000;z-index:9999;display:none;cursor:pointer;user-select:none;align-items:center;justify-content:center}
+#stealth.on{display:flex}
+#stealth span.lbl{font-size:10px;color:#0b0b0b;letter-spacing:.3em;pointer-events:none}
+/* Status LED — mirrors transfer state colour while black screen is active */
+#st-led{position:absolute;top:14px;right:14px;width:10px;height:10px;border-radius:50%;
+  opacity:0;background:var(--wn);transition:background .4s,opacity .4s;pointer-events:none}
+#stealth.on #st-led.vis{opacity:.8}
+h1{font-size:12px;letter-spacing:.3em;color:var(--ac);text-transform:uppercase;padding-bottom:10px;border-bottom:1px solid var(--bd);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.h1r{display:flex;gap:6px;flex-shrink:0}
+#thm,#scfg{background:transparent;border:1px solid var(--bd);color:var(--tx3);font-family:var(--fn);font-size:10px;padding:4px 9px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:all .12s}
+#thm:hover,#scfg:hover{border-color:var(--ac);color:var(--ac)}
+#spanel{display:none;background:var(--bg2);border:1px solid var(--bd);padding:12px;margin-bottom:10px}
+.sp-hd{font-size:9px;letter-spacing:.25em;color:var(--ac);text-transform:uppercase;margin-bottom:10px;font-weight:700}
+.sp-row{display:flex;align-items:flex-start;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bg);gap:8px;flex-wrap:wrap}
+.sp-row:last-child{border-bottom:none}
+.sp-lbl{font-size:11px;color:var(--tx2);flex:1;min-width:140px;line-height:1.5}
+.sp-lbl small{display:block;font-size:10px;color:var(--tx3);margin-top:2px}
+.sp-in{background:var(--bg);border:1px solid var(--bd);color:var(--tx);font-family:var(--fn);font-size:11px;padding:5px 8px;outline:none;min-width:80px}
+.sp-in:focus{border-color:var(--ac)}
+.sp-btn{font-family:var(--fn);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 9px;border:1px solid var(--bd);background:transparent;color:var(--tx3);cursor:pointer;transition:all .12s;white-space:nowrap;flex-shrink:0}
+.sp-btn:hover{border-color:var(--ac);color:var(--ac)}
+.tog{display:inline-block;position:relative;width:38px;height:21px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.ts{position:absolute;inset:0;background:var(--bg);border:1px solid var(--bd);cursor:pointer;transition:.2s}
+.ts::before{content:'';position:absolute;width:13px;height:13px;left:3px;bottom:3px;background:var(--tx3);transition:.2s}
+.tog input:checked+.ts{border-color:var(--ac)}
+.tog input:checked+.ts::before{transform:translateX(17px);background:var(--ac)}
+.st{padding:12px;background:var(--bg2);border:1px solid var(--bd);margin-bottom:12px}
+.st-main{font-size:13px;font-weight:600;margin-bottom:4px}
+.st-sub{font-size:11px;color:var(--tx2);line-height:1.7}
+.pb-wrap{margin-top:8px;display:none}
+.pb{height:3px;background:var(--bd);width:100%}
+.pf{height:100%;background:var(--ac);width:0%;transition:width .3s}
+.pb-row{display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-top:3px}
+.map{margin-top:8px;display:none}
+.map-lbl{font-size:9px;color:var(--tx3);letter-spacing:.1em;margin-bottom:4px}
+.map-leg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:5px;font-size:9px;color:var(--tx2)}
+.ml{display:flex;align-items:center;gap:3px}
+.mld{width:9px;height:9px;border-radius:1px;flex-shrink:0}
+.cmap{display:flex;flex-wrap:wrap;gap:2px}
+.cm{width:10px;height:10px;border-radius:1px;background:var(--bd);flex-shrink:0;transition:background .2s}
+.cm.g{background:var(--ok)}.cm.r{background:var(--er)}.cm.o{background:var(--ac)}
+.box{border:1px solid var(--bd);padding:12px;margin-bottom:10px;background:var(--bg2)}
+.lbl{font-size:9px;letter-spacing:.2em;color:var(--tx3);text-transform:uppercase;margin-bottom:7px}
+input[type=file]{display:block;width:100%;padding:9px;background:var(--bg);border:1px dashed var(--bd);color:var(--tx2);font-family:var(--fn);font-size:11px;cursor:pointer;margin-bottom:8px}
+input[type=file]:hover{border-color:var(--ac)}
+input[type=text]{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--bd);color:var(--tx);font-family:var(--fn);font-size:12px;outline:none;margin-bottom:6px}
+input[type=text]:focus{border-color:var(--ac)}
+textarea{width:100%;height:76px;background:var(--bg);border:1px solid var(--bd);color:var(--tx2);font-family:var(--fn);font-size:11px;padding:8px;resize:vertical;outline:none}
+textarea:focus{border-color:var(--ac)}
+textarea::placeholder{color:var(--tx3)}
+button{font-family:var(--fn);font-size:11px;padding:8px 14px;border:1px solid var(--bd);background:var(--bg);color:var(--tx2);cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:all .12s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;margin:3px 3px 0 0}
+button:hover,button:active{border-color:var(--ac);color:var(--ac)}
+button.p{border-color:var(--ac);color:var(--ac)}
+button.g{border-color:rgba(61,214,140,.5);color:var(--ok)}
+button.r{border-color:rgba(240,80,80,.4);color:var(--er)}
+button:disabled{opacity:.25;cursor:not-allowed;pointer-events:none}
+.pwd{display:none;background:rgba(245,200,64,.07);border:1px solid rgba(245,200,64,.3);padding:10px;margin-bottom:10px}
+.pwd-lbl{font-size:9px;letter-spacing:.2em;color:var(--wn);text-transform:uppercase;margin-bottom:7px;font-weight:700}
+.pwd-row{display:flex;gap:6px;flex-wrap:wrap}
+#aprog{display:none;margin-top:10px;padding:8px;background:var(--bg);border:1px solid var(--bd)}
+#aplbl{font-size:10px;color:var(--tx2);display:flex;justify-content:space-between;margin-bottom:4px}
+#log{background:var(--bg);border:1px solid var(--bd);padding:8px;height:120px;overflow-y:auto;font-size:10px;line-height:2;scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
+.lok{color:var(--ok)}.lerr{color:var(--er)}.lwn{color:var(--wn)}.linf{color:#5dd8ff}.ldim{color:var(--tx3)}
+@media(max-width:400px){body{padding:10px}button{font-size:10px;padding:7px 9px}.cm{width:8px;height:8px}}
+</style>
+</head>
+<body>
+
+<div id="stealth" onclick="stOff()"><span id="st-led"></span><span class="lbl">[   ]</span></div>
+
+<h1>
+  <span id="pg-lbl">7YP3X::RX-L1T3</span>
+  <div class="h1r">
+    <button id="thm" onclick="toggleTheme()">LIGHT</button>
+    <button id="scfg" onclick="togglePanel()">CFG</button>
+  </div>
+</h1>
+
+<div id="spanel">
+  <div class="sp-hd">Settings</div>
+  <div class="sp-row">
+    <span class="sp-lbl">Page title<small>Change to anything innocent-looking</small></span>
+    <input class="sp-in" type="text" id="s-title" placeholder="7YP3X::RX-L1T3" autocomplete="off" spellcheck="false" style="max-width:160px">
+    <button class="sp-btn" onclick="applyTitle()">APPLY</button>
+  </div>
+  <div class="sp-row">
+    <span class="sp-lbl">Stealth overlay<small>Key combo covers page with black screen · on mobile: triple-tap any blank area</small></span>
+    <label class="tog"><input type="checkbox" id="s-st" onchange="saveCfg()"><span class="ts"></span></label>
+  </div>
+  <div class="sp-row" id="row-combo" style="display:none">
+    <span class="sp-lbl">Stealth combo<small>Click then press your combination</small></span>
+    <input class="sp-in" type="text" id="s-combo" placeholder="Ctrl+Shift+H" readonly style="cursor:pointer;max-width:150px" onclick="capCombo(this)" autocomplete="off">
+    <button class="sp-btn" onclick="$('s-combo').value='Ctrl+Shift+H';saveCfg()">RESET</button>
+  </div>
+  <div class="sp-row" id="row-hide" style="display:none">
+    <span class="sp-lbl">Auto-hide (min)<small>0 = off. Stealth fires after inactivity.</small></span>
+    <input class="sp-in" type="text" id="s-ah" placeholder="0" style="max-width:60px" oninput="saveCfg()" autocomplete="off">
+  </div>
+  <div class="sp-row">
+    <span class="sp-lbl">Status LED<small>Tiny dot shows transfer status on black screen</small></span>
+    <label class="tog"><input type="checkbox" id="s-led" onchange="saveCfg()"><span class="ts"></span></label>
+  </div>
+  <div class="sp-row">
+    <span class="sp-lbl" style="color:var(--er)">Clear all data<small style="color:var(--tx3)">Wipes chunks. Settings kept.</small></span>
+    <button class="sp-btn" style="border-color:rgba(240,80,80,.4);color:var(--er)" onclick="clearAll()">CLEAR</button>
+  </div>
+</div>
+
+<div class="st"><div class="st-main" id="st-main" style="color:var(--wn)">WAITING</div><div class="st-sub" id="st-sub">Paste ibv1 chunks or load files below.</div><div class="pb-wrap" id="pb-wrap"><div class="pb"><div class="pf" id="pf"></div></div><div class="pb-row"><span id="pb-lbl">0/0</span><span id="pb-pct">0%</span></div></div><div class="map" id="mapwrap"><div class="map-lbl">CHUNK MAP</div><div class="map-leg"><span class="ml"><span class="mld" style="background:var(--ok)"></span>ok</span><span class="ml"><span class="mld" style="background:var(--er)"></span>fail</span><span class="ml"><span class="mld" style="background:var(--ac)"></span>pending</span><span class="ml"><span class="mld" style="background:var(--bd)"></span>none</span></div><div class="cmap" id="cmap"></div></div></div>
+
+<div class="pwd" id="pwdbox"><div class="pwd-lbl">[!] Encrypted — enter decryption password</div><div class="pwd-row"><input type="password" id="dpwd" placeholder="Password" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><button class="sp-btn" type="button" style="margin-left:4px" onclick="var f=document.getElementById('dpwd');if(f.type==='password'){f.type='text';this.textContent='HIDE';}else{f.type='password';this.textContent='SHOW';}">SHOW</button><button class="p" onclick="setPwd()">CONFIRM</button></div><div id="pwdst" style="font-size:10px;color:var(--tx3);margin-top:5px"></div></div>
+
+<div class="box"><div class="lbl">Files</div><input type="file" id="fi" multiple accept=".chunk,.json,.txt"><button class="p" onclick="doFiles()">LOAD FILES</button></div>
+
+<div class="box"><div class="lbl">Paste / Inject</div><textarea id="paste" placeholder="Paste ibv1;... lines here.&#10;Keep focused during DuckyScript injection."></textarea><button class="p" onclick="doPaste()">PROCESS</button><button onclick="$('paste').value=''">CLEAR</button></div>
+
+<div class="box"><div class="lbl">Actions</div><button class="p" id="ab" onclick="assemble()" disabled>ASSEMBLE &amp; DOWNLOAD</button><button class="g" id="vb" onclick="reverify()" disabled>RE-VERIFY</button><button id="mb" onclick="dlmiss()" disabled>MISSING</button><button class="r" onclick="clearAll()">CLEAR</button><div id="aprog"><div id="aplbl"><span id="ap-lbl">Assembling...</span><span id="ap-pct">0%</span></div><div class="pb"><div class="pf" id="apf" style="box-shadow:none"></div></div></div></div>
+
+<div class="box"><div class="lbl">Log</div><div id="log"><span class="ldim">7YP3X::RX-L1T3 ready</span></div></div>
+
+<script id="wsrc" type="text/plain">
+'use strict';
+function toHex(b){var a=new Uint8Array(b),h='';for(var i=0;i<a.length;i++)h+=a[i].toString(16).padStart(2,'0');return h;}
+function hexBuf(h){if(!h||h==='0'||h.length<2)return new ArrayBuffer(0);var b=new Uint8Array(h.length/2);for(var i=0;i<b.length;i++)b[i]=parseInt(h.substr(i*2,2),16);return b.buffer;}
+function algo(s){return s.replace(/^sha(\d+)$/,'SHA-$1');}
+function hashBuf(b,a){return crypto.subtle.digest(algo(a),b).then(function(h){return toHex(h);});}
+function decomp(buf,a){var ds=new DecompressionStream(a);var w=ds.writable.getWriter();w.write(new Uint8Array(buf));w.close();var r=ds.readable.getReader();var p=[];function rd(){return r.read().then(function(x){if(x.done){var t=p.reduce(function(s,v){return s+v.length;},0);var o=new Uint8Array(t);var off=0;for(var i=0;i<p.length;i++){o.set(p[i],off);off+=p[i].length;}return o.buffer;}p.push(x.value);return rd();});}return rd();}
+function deriveKey(pw,salt,u){return crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']).then(function(k){return crypto.subtle.deriveKey({name:'PBKDF2',salt:new Uint8Array(salt),iterations:210000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,[u]);});}
+self.onmessage=function(e){
+  var d=e.data,id=d.id;
+  function prog(p,m){self.postMessage({id:id,type:'P',pct:p,msg:m});}
+  prog(5,'Joining chunks...');
+  var bufs=d.chunks.map(function(c){var b=new Uint8Array(c.length/2);for(var i=0;i<b.length;i++)b[i]=parseInt(c.substr(i*2,2),16);return b;});
+  var tot=bufs.reduce(function(s,b){return s+b.length;},0);var cb=new Uint8Array(tot);var off=0;
+  for(var i=0;i<bufs.length;i++){cb.set(bufs[i],off);off+=bufs[i].length;}
+  var chain=Promise.resolve(cb.buffer);
+  if(d.enc){chain=chain.then(function(b){prog(28,'Decrypting...');var salt=hexBuf(d.salt);var iv=new Uint8Array(hexBuf(d.iv));return deriveKey(d.pwd,new Uint8Array(salt),'decrypt').then(function(k){return crypto.subtle.decrypt({name:'AES-GCM',iv:iv},k,b);}).catch(function(e2){throw new Error('Decrypt failed: '+e2.message);});}).then(function(b){prog(52,'Decrypted');return b;});}
+  if(d.comp&&d.calg&&d.calg!=='none'){chain=chain.then(function(b){prog(62,'Decompressing...');return decomp(b,d.calg).catch(function(e2){throw new Error('Decompress failed: '+e2.message);});}).then(function(b){prog(75,'Decompressed');return b;});}
+  chain=chain.then(function(b){prog(84,'Verifying hash...');return hashBuf(b,d.algo).then(function(h){if(h!==d.fhash)throw new Error('Hash mismatch');prog(100,'Done');self.postMessage({id:id,type:'OK',size:b.byteLength});self.postMessage({id:id,type:'BUF',buffer:b},[b]);});});
+  chain.catch(function(e){self.postMessage({id:id,type:'ERR',msg:e.message});});
+};
+</script>
+
+<script>
+'use strict';
+var SK='typex_rxl_cfg';
+var cfg={title:'7YP3X::RX-L1T3',stealth:false,combo:'Ctrl+Shift+H',autohide:0,showLed:false};
+function $(id){return document.getElementById(id);}
+function fmt(n){if(!n)return'0 B';if(n<1024)return n+' B';if(n<1048576)return(n/1024).toFixed(1)+' KB';return(n/1048576).toFixed(2)+' MB';}
+function lg(m,t){var el=$('log'),s=document.createElement('span');s.className='l'+(t||'dim');s.style.display='block';s.textContent='['+new Date().toISOString().substr(11,8)+'] '+m;el.appendChild(s);el.scrollTop=el.scrollHeight;}
+function lgOk(m){lg(m,'ok');}function lgErr(m){lg(m,'err');}function lgWn(m){lg(m,'wn');}function lgInf(m){lg(m,'inf');}
+
+var dark=true;
+function toggleTheme(){dark=!dark;document.body.classList.toggle('light',!dark);$('thm').textContent=dark?'LIGHT':'DARK';}
+function togglePanel(){$('spanel').style.display=$('spanel').style.display==='block'?'none':'block';}
+
+function loadCfg(){try{var s=JSON.parse(localStorage.getItem(SK)||'{}');Object.keys(s).forEach(function(k){if(k in cfg)cfg[k]=s[k];});}catch(e){}}
+function saveCfg(){
+  cfg.stealth=$('s-st').checked;
+  cfg.combo=($('s-combo').value||'Ctrl+Shift+H').trim();
+  cfg.autohide=parseFloat($('s-ah').value)||0;
+  cfg.showLed=$('s-led').checked;
+  try{localStorage.setItem(SK,JSON.stringify(cfg));}catch(e){}
+  $('row-combo').style.display=cfg.stealth?'flex':'none';
+  $('row-hide').style.display=cfg.stealth?'flex':'none';
+  
+  var led=$('st-led');if(led)led.classList.toggle('vis',cfg.showLed);
+  resetAH();
+}
+function syncCfgUI(){
+  $('s-st').checked=cfg.stealth;$('s-combo').value=cfg.combo;$('s-ah').value=cfg.autohide||'';
+  if($('s-led'))$('s-led').checked=cfg.showLed||false;
+  $('row-combo').style.display=cfg.stealth?'flex':'none';
+  $('row-hide').style.display=cfg.stealth?'flex':'none';
+  $('pg-title').textContent=cfg.title;$('pg-lbl').textContent=cfg.title.toUpperCase();
+  var led=$('st-led');if(led)led.classList.toggle('vis',cfg.showLed);
+}
+function applyTitle(){cfg.title=($('s-title').value||'7YP3X::RX-L1T3').trim();$('pg-title').textContent=cfg.title;$('pg-lbl').textContent=cfg.title.toUpperCase();saveCfg();}
+
+var ahTimer=null,lastAct=Date.now();
+function stOn(){$('stealth').classList.add('on');}
+function stOff(){$('stealth').classList.remove('on');lastAct=Date.now();}
+function resetAH(){if(ahTimer)clearInterval(ahTimer);if(!cfg.stealth||cfg.autohide<=0)return;ahTimer=setInterval(function(){if(Date.now()-lastAct>=cfg.autohide*60000&&!$('stealth').classList.contains('on'))stOn();},15000);}
+['mousemove','keydown','touchstart','click'].forEach(function(ev){document.addEventListener(ev,function(){lastAct=Date.now();},true);});
+
+function setLed(col){var led=$('st-led');if(!led)return;var map={g:'#2ee87a',r:'#f55050',y:'#f5c840',a:'#e8922a',dim:'#333'};led.style.background=map[col]||map.dim;}
+var capTarget=null;
+function capCombo(f){if(capTarget){capTarget.style.borderColor='';capTarget=null;}capTarget=f;f.value='Press combo...';f.style.borderColor='var(--ac)';}
+document.addEventListener('keydown',function(e){
+  if(capTarget){e.preventDefault();var p=[];if(e.ctrlKey)p.push('Ctrl');if(e.altKey)p.push('Alt');if(e.shiftKey)p.push('Shift');if(e.metaKey)p.push('Meta');var k=e.key;if(!['Control','Alt','Shift','Meta'].includes(k))p.push(k.length===1?k.toUpperCase():k);if(p.length>=2){capTarget.value=p.join('+');capTarget.style.borderColor='';capTarget=null;saveCfg();}return;}
+  var p2=[];if(e.ctrlKey)p2.push('Ctrl');if(e.altKey)p2.push('Alt');if(e.shiftKey)p2.push('Shift');if(e.metaKey)p2.push('Meta');var k2=e.key;if(!['Control','Alt','Shift','Meta'].includes(k2))p2.push(k2.length===1?k2.toUpperCase():k2);
+  if(cfg.stealth&&p2.join('+')===cfg.combo){e.preventDefault();$('stealth').classList.contains('on')?stOff():stOn();}
+});
+
+var wk=null,pend={};
+function getWk(){if(wk)return wk;wk=new Worker(URL.createObjectURL(new Blob([$('wsrc').textContent],{type:'application/javascript'})));wk.onmessage=function(e){var d=e.data,id=d.id,cb=pend[id];if(!cb)return;if(d.type==='P'){if(cb.prog)cb.prog(d.pct,d.msg);}else if(d.type==='BUF'){cb.buf=d.buffer;tryR(id);}else if(d.type==='OK'){cb.size=d.size;cb.hasOk=true;tryR(id);}else if(d.type==='ERR'){delete pend[id];cb.rej(new Error(d.msg));}};return wk;}
+function tryR(id){var cb=pend[id];if(cb&&cb.hasOk&&cb.buf){delete pend[id];cb.res({buf:cb.buf,size:cb.size});}}
+function doAss(p,prog){return new Promise(function(res,rej){var id='a'+(Date.now()+Math.random()).toString(36);pend[id]={res:res,rej:rej,prog:prog,hasOk:false,buf:null,size:0};getWk().postMessage({id:id,chunks:p.chunks,enc:p.enc,comp:p.comp,calg:p.calg,algo:p.algo,fhash:p.fhash,salt:p.salt,iv:p.iv,pwd:p.pwd});});}
+
+var DB='TYPEX_RXL',DV=1,CS='c',MS='m',db=null,meta=null,decPwd='',failIdx={};
+function dbOpen(){return new Promise(function(res,rej){var r=indexedDB.open(DB,DV);r.onupgradeneeded=function(e){var d=e.target.result;if(!d.objectStoreNames.contains(CS))d.createObjectStore(CS,{keyPath:'id'});if(!d.objectStoreNames.contains(MS))d.createObjectStore(MS,{keyPath:'fh'});};r.onsuccess=function(e){res(e.target.result);};r.onerror=function(e){rej(e.target.error);};}); }
+function dbPut(s,o){return new Promise(function(res,rej){try{var tx=db.transaction(s,'readwrite');tx.objectStore(s).put(o).onsuccess=function(){res();};tx.onerror=function(e){rej(new Error(e.target.error));};}catch(e){rej(e);}});}
+function dbAll(s){return new Promise(function(res,rej){try{var tx=db.transaction(s,'readonly');tx.objectStore(s).getAll().onsuccess=function(e){res(e.target.result||[]);};tx.onerror=function(e){rej(new Error(e.target.error));};}catch(e){rej(e);}});}
+function dbClr(s){return new Promise(function(res,rej){try{var tx=db.transaction(s,'readwrite');tx.objectStore(s).clear().onsuccess=function(){res();};tx.onerror=function(e){rej(new Error(e.target.error));};}catch(e){rej(e);}});}
+
+function parse(line){
+  line=line.trim();if(!line||line[0]==='#')return null;
+  if(line.substr(0,5)==='ibv1;'){
+    var p=line.split(';');
+    if(p.length<12){lgErr('ibv1: only '+p.length+'/12 fields');return null;}
+    var idx=parseInt(p[1],10);if(isNaN(idx)||idx<0){lgErr('Bad idx: '+p[1]);return null;}
+    var nameHex=p.length>12?(p[12]||''):'',filename='recovered_file';
+    if(nameHex.length>0&&nameHex.length%2===0){try{var nb=new Uint8Array(nameHex.length/2);for(var ni=0;ni<nb.length;ni++)nb[ni]=parseInt(nameHex.substr(ni*2,2),16);filename=new TextDecoder().decode(nb);}catch(xe){}}
+    return{idx:idx,tot:parseInt(p[2],10),chash:p[3],fhash:p[4],comp:p[5]==='1',calg:p[6]||'none',enc:p[7]==='1',salt:p[8]||'0',iv:p[9]||'0',algo:p[10]||'sha256',hex:p[11]||'',filename:filename};
+  }
+  try{var o=JSON.parse(line);if(o.chunks&&Array.isArray(o.chunks))return{_tf:true,obj:o};}catch(x){}
+  lgErr('Cannot parse: "'+line.substr(0,50)+'"');return null;
+}
+
+function hashHex(hex,a){var alg=a.replace(/^sha(\d+)$/,'SHA-$1');var b=new Uint8Array(hex.length/2);for(var i=0;i<b.length;i++)b[i]=parseInt(hex.substr(i*2,2),16);return crypto.subtle.digest(alg,b.buffer).then(function(h){return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0');}).join('');});}
+
+function proc(parsed){
+  if(!parsed||parsed._tf)return Promise.resolve(false);
+  var idx=parsed.idx;
+  if(isNaN(idx)||idx<0||!parsed.hex||parsed.hex.length===0||parsed.hex.length%2!==0){lgErr('Bad chunk #'+idx);return Promise.resolve(false);}
+  if(meta&&meta.fh!==parsed.fhash){lgErr('#'+idx+' wrong transfer — CLEAR first');return Promise.resolve(false);}
+  var sp=Promise.resolve();
+  if(!meta){meta={fh:parsed.fhash,tot:parsed.tot,fn:parsed.filename||'recovered_file',algo:parsed.algo,comp:parsed.comp,calg:parsed.calg,enc:parsed.enc,salt:parsed.salt,iv:parsed.iv};sp=dbPut(MS,meta).then(function(){lgInf('Transfer: '+meta.tot+' chunks | '+meta.fn);});}
+  return sp.then(function(){return hashHex(parsed.hex,meta.algo).then(function(h){
+    if(h!==parsed.chash){failIdx[idx]=true;lgErr('[FAIL] HASH FAIL #'+String(idx).padStart(4,'0')+' — re-inject');return false;}
+    return dbPut(CS,{id:meta.fh+':'+idx,fh:meta.fh,idx:idx,chash:parsed.chash,hex:parsed.hex}).then(function(){lgOk('[OK] #'+String(idx).padStart(4,'0'));return true;});
+  });}).catch(function(e){lgErr('#'+idx+': '+e.message);return false;});}
+
+function procLines(lines){var ok=0,fail=0,i=0;function nxt(){if(i>=lines.length)return Promise.resolve({ok:ok,fail:fail});var line=lines[i++];var parsed=parse(line);
+  if(!parsed){try{var o=JSON.parse(line);if(o.chunks&&Array.isArray(o.chunks)){var cl=o.chunks;var j=0;function nc(){if(j>=cl.length)return nxt();return proc(parse(cl[j++])).then(function(r){r?ok++:fail++;return nc();});}return nc();}}catch(x){}fail++;return nxt();}
+  if(parsed._tf){if(parsed.obj.chunks&&Array.isArray(parsed.obj.chunks)){var cl2=parsed.obj.chunks;var k=0;function nc2(){if(k>=cl2.length)return nxt();return proc(parse(cl2[k++])).then(function(r){r?ok++:fail++;return nc2();});}return nc2();}fail++;return nxt();}
+  return proc(parsed).then(function(r){r?ok++:fail++;return nxt();});}return nxt();}
+
+function doFiles(){
+  var fs=$('fi').files;if(!fs.length){lgWn('No files');return;}var i=0,tot={ok:0,fail:0};
+  function nf(){if(i>=fs.length){lg(tot.ok+' accepted, '+tot.fail+' failed',tot.ok>0?'ok':'wn');refresh();return;}
+    var f=fs[i++];f.text().then(function(t){
+      var tr=t.trim();
+      if(tr[0]==='{'){try{var obj=JSON.parse(tr);if(obj.chunks&&Array.isArray(obj.chunks)){lgInf(f.name+': JSON — '+obj.chunks.length+' chunks');var cl=obj.chunks,j=0,ok=0,fail=0;function nc(){if(j>=cl.length){tot.ok+=ok;tot.fail+=fail;nf();return;}proc(parse(cl[j++])).then(function(r){r?ok++:fail++;nc();});}nc();return;}}catch(je){lgWn(f.name+': JSON parse failed — trying plain text');}}
+      var dl=t.split('\n').filter(function(l){return l.trim().startsWith('STRING ');});
+      var lines=dl.length>0?dl.map(function(l){return l.trim().substr(7);}):t.split('\n').map(function(l){return l.trim();}).filter(function(l){return l&&l[0]!=='#'&&!l.startsWith('REM')&&!l.startsWith('DELAY')&&!l.startsWith('ENTER');});
+      lgInf(f.name+': '+lines.length+' lines');
+      procLines(lines).then(function(r){tot.ok+=r.ok;tot.fail+=r.fail;nf();});
+    }).catch(function(e){lgErr(f.name+': '+e.message);tot.fail++;nf();});}nf();}
+
+function doPaste(){var t=$('paste').value.trim();if(!t){lgWn('Empty');return;}procLines(t.split('\n').map(function(l){return l.trim();}).filter(function(l){return l&&l[0]!=='#';})).then(function(r){lg(r.ok+' ok, '+r.fail+' fail',r.ok>0?'ok':'wn');if(r.ok>0)$('paste').value='';refresh();});}
+
+$('paste').addEventListener('keydown',function(e){if(e.key!=='Enter')return;var lines=this.value.split('\n');var last=lines[lines.length-1].trim();if(last.substr(0,5)!=='ibv1;')return;e.preventDefault();var p=parse(last);if(!p)return;var ta=this;proc(p).then(function(ok){if(ok){ta.value='';refresh();}});});
+
+function setPwd(){var p=($('dpwd').value||'').trim();if(!p){$('pwdst').textContent='Cannot be empty';$('pwdst').style.color='var(--er)';return;}decPwd=p;$('pwdst').textContent='Set';$('pwdst').style.color='var(--ok)';lgOk('Password set');}
+
+function reverify(){if(!meta){lgWn('No transfer');return;}dbAll(CS).then(function(all){if(!all.length){lgWn('Nothing stored');return;}lgInf('Verifying '+all.length+' chunks...');var ok=0,fail=0,i=0;function nxt(){if(i>=all.length){lg('Verify: '+ok+' OK, '+fail+' bad',fail>0?'err':'ok');refresh();return;}var r=all[i++];hashHex(r.hex,meta.algo).then(function(h){if(h===r.chash)ok++;else{fail++;failIdx[r.idx]=true;lgErr('CORRUPTED #'+r.idx);}nxt();}).catch(function(e){fail++;lgErr(e.message);nxt();});}nxt();}).catch(function(e){lgErr(e.message);});}
+
+function dlmiss(){if(!meta)return;dbAll(CS).then(function(all){var got={};all.forEach(function(r){got[r.idx]=true;});var miss=[];for(var i=0;i<meta.tot;i++)if(!got[i])miss.push(i);if(!miss.length){lgOk('No missing');return;}var b=new Blob(['# Missing: '+miss.length+'/'+meta.tot+'\n\n'+miss.join('\n')],{type:'text/plain'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='missing.txt';a.click();URL.revokeObjectURL(u);lgWn('Exported '+miss.length+' missing');});}
+
+function assemble(){
+  if(!meta){lgWn('No transfer');return;}
+  if(meta.enc&&!decPwd){lgErr('Enter password first');$('pwdbox').style.display='block';$('dpwd').focus();return;}
+  dbAll(CS).then(function(all){
+    all.sort(function(a,b){return a.idx-b.idx;});
+    if(all.length!==meta.tot){lgErr('Missing '+(meta.tot-all.length)+' chunks');return;}
+    for(var i=0;i<all.length;i++){if(all[i].idx!==i){lgErr('Sequence error at '+i);return;}}
+    $('aprog').style.display='block';$('ab').disabled=true;
+    function prog(p,m){$('apf').style.width=p+'%';$('ap-pct').textContent=Math.round(p)+'%';$('ap-lbl').textContent=m;}
+    doAss({chunks:all.map(function(r){return r.hex;}),enc:meta.enc,comp:meta.comp,calg:meta.calg,algo:meta.algo,fhash:meta.fh,salt:meta.salt,iv:meta.iv,pwd:decPwd},prog)
+    .then(function(res){
+      var blob=new Blob([res.buf]);var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=meta.fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+      lgOk('Downloaded: '+meta.fn+' ('+fmt(res.size)+')');$('st-main').textContent='COMPLETE';$('st-main').style.color='var(--ok)';$('ab').disabled=false;
+    }).catch(function(e){lgErr('FAILED: '+e.message);$('st-main').style.color='var(--er)';$('ab').disabled=false;});
+  }).catch(function(e){lgErr(e.message);$('ab').disabled=false;});}
+
+function clearAll(){
+  if(!confirm('Clear all stored chunks? Settings kept.'))return;
+  Promise.all([dbClr(CS).catch(function(){}),dbClr(MS).catch(function(){})]).then(function(){
+    meta=null;decPwd='';failIdx={};$('dpwd').value='';$('pwdst').textContent='';
+    $('pwdbox').style.display='none';$('aprog').style.display='none';lgWn('Cleared');refresh();});}
+
+function refresh(){
+  Promise.all([dbAll(CS).catch(function(){return[];}),dbAll(MS).catch(function(){return[];})]).then(function(r){
+    var all=r[0],ma=r[1];
+    if(!meta&&ma.length>0){meta=ma[0];}
+    if(!meta){$('st-main').textContent='WAITING';$('st-main').style.color='var(--wn)';$('st-sub').textContent='Paste ibv1 chunks or load files.';$('pb-wrap').style.display='none';$('mapwrap').style.display='none';$('pwdbox').style.display='none';$('ab').disabled=true;$('vb').disabled=true;$('mb').disabled=true;setLed('dim');return;}
+    var got=all.length,tot=meta.tot,done=got===tot;
+    $('st-main').textContent=done?'ALL '+tot+' CHUNKS [OK]':'RECEIVING: '+got+'/'+tot;
+    $('st-main').style.color=done?'var(--ok)':'var(--wn)';
+    $('st-sub').textContent=done?(meta.enc&&!decPwd?'Enter password then ASSEMBLE':'Click ASSEMBLE to download '+meta.fn):(tot-got)+' chunks missing';
+    setLed(done?'g':'a');
+    $('pb-wrap').style.display='block';$('pf').style.width=(got/tot*100)+'%';$('pb-lbl').textContent=got+'/'+tot;$('pb-pct').textContent=Math.round(got/tot*100)+'%';
+    if(meta.enc&&done&&!decPwd)$('pwdbox').style.display='block';else if(decPwd)$('pwdbox').style.display='none';
+    $('mapwrap').style.display='block';var gs={};all.forEach(function(r){gs[r.idx]=true;});
+    var map=$('cmap');if(map.children.length!==tot){map.innerHTML='';var frag=document.createDocumentFragment();for(var i=0;i<tot;i++){var c=document.createElement('div');c.className='cm o';c.title='#'+i;frag.appendChild(c);}map.appendChild(frag);}
+    var cells=map.children;for(var ci=0;ci<cells.length;ci++){var nc=gs[ci]?'cm g':failIdx[ci]?'cm r':'cm o';if(cells[ci].className!==nc)cells[ci].className=nc;}
+    $('ab').disabled=!done;$('vb').disabled=got===0;$('mb').disabled=(tot-got)===0;
+  });}
+
+(function(){
+  var tc=0,tt=null;
+  document.addEventListener('touchend',function(e){
+    var el=e.target;
+    while(el&&el!==document.body){if(/^(BUTTON|INPUT|SELECT|TEXTAREA|A|LABEL)$/.test(el.tagName))return;el=el.parentNode;}
+    tc++;clearTimeout(tt);tt=setTimeout(function(){tc=0;},600);
+    if(tc>=3){tc=0;clearTimeout(tt);$('stealth').classList.contains('on')?stOff():stOn();}
+  },{passive:true});
+})();
+
+(function(){
+  loadCfg();syncCfgUI();$('s-title').value=cfg.title;resetAH();
+  try{getWk();lgInf('Worker ready');}catch(e){lgErr('Worker: '+e.message);}
+  if(!window.crypto||!crypto.subtle)lgErr('Web Crypto unavailable');
+  if(typeof DecompressionStream==='undefined')lgErr('DecompressionStream unavailable');
+  if(!window.indexedDB)lgErr('IndexedDB unavailable');
+  dbOpen().then(function(d){db=d;lgOk('Storage ready');return dbAll(MS);}).then(function(m){if(m&&m.length>0){meta=m[0];lgInf('Resumed: '+meta.fn+' ('+meta.tot+' chunks)');}refresh();lgOk('7YP3X::RX-L1T3 v4.1 ready');}).catch(function(e){lgErr('Init: '+e.message);});
+})();
+</script>
+</body>
+</html>

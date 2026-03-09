@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title id="pg-title">7YP3X::RX</title>
+<style>
+/* ═══ TOKENS ════════════════════════════════════════════════ */
+:root{
+  --bg:#080808; --bg2:#0e0e0e; --bg3:#161616; --bg4:#1e1e1e;
+  --tx:#f2f2f2; --tx2:#cccccc; --tx3:#999999;
+  --bd:#2a2a2a; --bd2:#3a3a3a;
+  --ac:#e8922a;
+  --ok:#2ee87a; --er:#f55050; --wn:#f5c840; --inf:#5dd8ff;
+  --ok-dim:rgba(46,232,122,.1); --er-dim:rgba(245,80,80,.1);
+  --wn-dim:rgba(245,200,64,.08); --inf-dim:rgba(93,216,255,.08);
+  --chunk-empty:#232323; --chunk-ok:#1ec968; --chunk-fail:#e83232; --chunk-miss:#e07818;
+  --fn:'Courier New',Courier,monospace;
+}
+/* ═══ RESET ═════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--tx);font-family:var(--fn);font-size:13px;
+  padding:12px;max-width:680px;margin:0 auto;padding-bottom:40px;min-height:100vh}
+/* ═══ STEALTH OVERLAY ════════════════════════════════════════ */
+#stealth{position:fixed;inset:0;background:#000;z-index:9999;
+  display:none;cursor:pointer;user-select:none}
+#stealth.on{display:flex;align-items:center;justify-content:center}
+#stealth span{font-size:10px;color:#0d0d0d;letter-spacing:.3em;pointer-events:none}
+/* Status LED dot — mirrors decoder status colour */
+#st-led{position:absolute;top:14px;right:14px;width:10px;height:10px;
+  border-radius:50%;opacity:0;background:var(--wn);transition:background .4s,opacity .4s;pointer-events:none}
+#stealth.on #st-led.vis{opacity:.8}
+/* Injection ETA strip — shows live chars/sec and time remaining */
+#inj-eta{display:none;margin-top:8px;padding:6px 8px;background:rgba(93,216,255,.06);
+  border:1px solid rgba(93,216,255,.15);font-size:10px;color:var(--inf);letter-spacing:.05em}
+/* ═══ SETTINGS PANEL ═════════════════════════════════════════ */
+#spanel{display:none;background:var(--bg2);border:1px solid var(--bd);padding:14px;margin-bottom:10px}
+#spanel.open{display:block}
+.sp-hd{font-size:9px;letter-spacing:.3em;color:var(--ac);text-transform:uppercase;margin-bottom:12px;font-weight:700}
+.sp-row{display:flex;align-items:flex-start;justify-content:space-between;
+  padding:8px 0;border-bottom:1px solid var(--bg3);gap:10px;flex-wrap:wrap}
+.sp-row:last-child{border-bottom:none}
+.sp-lbl{font-size:11px;color:var(--tx2);flex:1;min-width:160px;line-height:1.5}
+.sp-lbl small{display:block;font-size:10px;color:var(--tx3);margin-top:2px}
+.sp-in{background:var(--bg);border:1px solid var(--bd);color:var(--tx);font-family:var(--fn);
+  font-size:11px;padding:5px 8px;outline:none;min-width:100px}
+.sp-in:focus{border-color:var(--ac)}
+.sp-btn{font-family:var(--fn);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  padding:5px 10px;border:1px solid var(--bd2);background:transparent;color:var(--tx3);
+  cursor:pointer;transition:all .12s;white-space:nowrap}
+.sp-btn:hover{border-color:var(--ac);color:var(--ac)}
+.sp-btn-r:hover{border-color:var(--er);color:var(--er)}
+/* Toggle switch */
+.tog{display:inline-block;position:relative;width:38px;height:21px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.ts{position:absolute;inset:0;background:var(--bg3);border:1px solid var(--bd2);cursor:pointer;transition:.2s}
+.ts::before{content:'';position:absolute;width:13px;height:13px;left:3px;bottom:3px;background:var(--tx3);transition:.2s}
+.tog input:checked+.ts{border-color:var(--ac)}
+.tog input:checked+.ts::before{transform:translateX(17px);background:var(--ac)}
+/* ═══ LAYOUT ═════════════════════════════════════════════════ */
+h1{font-size:11px;letter-spacing:.3em;color:var(--ac);text-transform:uppercase;
+  border-bottom:1px solid var(--bd);padding-bottom:9px;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between}
+.gear{background:transparent;border:none;font-size:15px;color:var(--tx3);cursor:pointer;padding:0 4px;transition:color .12s}
+.gear:hover{color:var(--ac)}
+.box{border:1px solid var(--bd);padding:12px;margin-bottom:10px;background:var(--bg2)}
+.sec-lbl{font-size:9px;letter-spacing:.25em;color:var(--tx3);text-transform:uppercase;margin:0 0 8px}
+/* ═══ STATUS CARD ════════════════════════════════════════════ */
+.status-card{padding:14px;background:var(--bg2);border:1px solid var(--bd);margin-bottom:10px}
+.st-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.st-dot{font-size:16px;flex-shrink:0;transition:color .3s}
+.st-dot.pulse{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes chunkPop{0%{transform:scale(1.6);opacity:.6}100%{transform:scale(1);opacity:1}}
+.st-main{font-size:13px;font-weight:600;color:var(--tx);flex:1}
+.st-sub{font-size:11px;color:var(--tx2);line-height:1.7;margin-bottom:8px}
+.st-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.chip{font-size:9px;letter-spacing:.1em;padding:3px 8px;border:1px solid;text-transform:uppercase}
+.chip-ok{border-color:rgba(61,214,140,.4);color:var(--ok);background:var(--ok-dim)}
+.chip-er{border-color:rgba(240,80,80,.4);color:var(--er);background:var(--er-dim)}
+.chip-wn{border-color:rgba(240,192,64,.4);color:var(--wn);background:var(--wn-dim)}
+.chip-inf{border-color:rgba(107,212,255,.3);color:var(--inf);background:var(--inf-dim)}
+/* Progress bar */
+.pb-wrap{display:none;margin-top:8px}
+.pb{height:3px;background:var(--bg4);width:100%}
+.pf{height:100%;background:var(--ac);width:0%;transition:width .3s}
+.pb-row{display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-top:4px}
+/* ═══ CHUNK MAP ══════════════════════════════════════════════ */
+.map-wrap{display:none;margin-top:10px}
+.map-lbl{font-size:9px;color:var(--tx3);margin-bottom:5px;letter-spacing:.1em}
+.map-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.ml{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--tx2)}
+.ml-dot{width:10px;height:10px;border-radius:1px;flex-shrink:0}
+.cmap{display:flex;flex-wrap:wrap;gap:2px}
+.cm{width:11px;height:11px;border-radius:1px;flex-shrink:0;
+  background:var(--chunk-empty);transition:background .25s ease,transform .18s ease;cursor:default}
+.cm.got {background:var(--chunk-ok)}
+.cm.fail{background:var(--chunk-fail)}
+.cm.miss{background:var(--chunk-miss)}
+.cm.new {animation:chunkPop .3s ease-out}
+/* ═══ TRANSFER INFO ══════════════════════════════════════════ */
+.tinfo-grid{display:flex;flex-wrap:wrap}
+.ti{display:flex;justify-content:space-between;padding:6px 8px;
+  border-bottom:1px solid var(--bg3);font-size:11px;flex:1;min-width:170px}
+.ti-k{color:var(--tx3)}
+.ti-v{color:var(--inf);text-align:right;word-break:break-all;max-width:55%}
+/* ═══ PASSWORD BOX ═══════════════════════════════════════════ */
+.pwd-box{display:none;background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.25);
+  padding:12px;margin-bottom:10px}
+.pwd-lbl{font-size:9px;letter-spacing:.2em;color:var(--wn);text-transform:uppercase;margin-bottom:8px;font-weight:700}
+.pwd-row{display:flex;gap:6px;flex-wrap:wrap}
+/* ═══ INPUTS ═════════════════════════════════════════════════ */
+input[type=file]{width:100%;padding:9px;background:var(--bg);border:1px dashed var(--bd2);
+  color:var(--tx2);font-family:var(--fn);font-size:11px;cursor:pointer;margin-bottom:8px}
+input[type=file]:hover{border-color:var(--ac)}
+input[type=text]{flex:1;min-width:100px;padding:8px 10px;background:var(--bg);
+  border:1px solid var(--bd);color:var(--tx);font-family:var(--fn);font-size:12px;outline:none}
+input[type=text]:focus{border-color:var(--ac)}
+textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--bd);
+  color:var(--tx2);font-family:var(--fn);font-size:11px;padding:8px;resize:vertical;outline:none}
+textarea:focus{border-color:var(--inf)}
+textarea::placeholder{color:var(--bg4)}
+/* ═══ BUTTONS ════════════════════════════════════════════════ */
+button{font-family:var(--fn);font-size:11px;padding:8px 12px;border:1px solid var(--bd2);
+  background:var(--bg);color:var(--tx2);cursor:pointer;letter-spacing:.08em;text-transform:uppercase;
+  transition:border-color .12s,color .12s;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;margin:3px 3px 0 0}
+button:hover,button:active{border-color:var(--ac);color:var(--ac)}
+button.p{border-color:var(--ac);color:var(--ac)}
+button.g{border-color:rgba(61,214,140,.5);color:var(--ok)}
+button.b{border-color:rgba(107,212,255,.5);color:var(--inf)}
+button.r{border-color:rgba(240,80,80,.4);color:var(--er)}
+button.w{border-color:rgba(240,192,64,.5);color:var(--wn)}
+button:disabled{opacity:.25;cursor:not-allowed;pointer-events:none}
+/* Assembly progress */
+#aprog{display:none;margin-top:10px;background:var(--bg);border:1px solid var(--bd);padding:10px}
+#aplbl{font-size:10px;color:var(--tx2);display:flex;justify-content:space-between;margin-bottom:5px}
+/* Verify-only banner */
+#vo-bar{margin-top:8px;padding:7px 10px;background:var(--inf-dim);
+  border:1px solid rgba(107,212,255,.25);font-size:10px;color:var(--inf);
+  display:none;align-items:center;justify-content:space-between;gap:8px}
+#vo-bar.on{display:flex}
+/* ═══ LOG ════════════════════════════════════════════════════ */
+#log{background:var(--bg);border:1px solid var(--bd);padding:8px;height:130px;overflow-y:auto;
+  font-size:10px;line-height:2;scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
+#log::-webkit-scrollbar{width:3px}
+#log::-webkit-scrollbar-thumb{background:var(--bd2)}
+.lok{color:var(--ok)}.lerr{color:var(--er)}.lwarn{color:var(--wn)}.linfo{color:var(--inf)}.ldim{color:var(--tx3)}
+/* ═══ MOBILE ══════════════════════════════════════════════════ */
+@media(max-width:480px){
+  body{padding:8px;font-size:12px}
+  h1{font-size:9px}
+  button{font-size:10px;padding:7px 9px}
+  textarea{height:64px}
+  .cm{width:8px;height:8px}
+  .ti{min-width:140px}
+}
+</style>
+</head>
+<body>
+
+<div id="stealth" onclick="stOff()">
+  <span id="st-led"></span>
+  <span>◈</span>
+</div>
+
+<h1>
+  <span id="pg-lbl">◈ 7YP3X::RX</span>
+  <button class="gear" onclick="$('spanel').classList.toggle('open')" title="Settings">⚙</button>
+</h1>
+
+<div id="spanel">
+  <div class="sp-hd">Settings</div>
+  <div class="sp-row">
+    <span class="sp-lbl">Page title / label<small>Change to anything innocent-looking</small></span>
+    <input class="sp-in" type="text" id="s-title" placeholder="7YP3X::RX" autocomplete="off" spellcheck="false">
+    <button class="sp-btn" onclick="applyTitle()">APPLY</button>
+  </div>
+  <div class="sp-row">
+    <span class="sp-lbl">Stealth mode<small>Key combo draws a black screen · on mobile: triple-tap any blank area</small></span>
+    <label class="tog"><input type="checkbox" id="s-stealth" onchange="saveCfg()"><span class="ts"></span></label>
+  </div>
+  <div class="sp-row" id="row-combo" style="display:none">
+    <span class="sp-lbl">Stealth key combo<small>Click field and press your combination</small></span>
+    <input class="sp-in" type="text" id="s-combo" placeholder="Ctrl+Shift+H" readonly style="cursor:pointer;max-width:160px" onclick="capCombo(this)" autocomplete="off">
+    <button class="sp-btn" onclick="$('s-combo').value='Ctrl+Shift+H';saveCfg()">RESET</button>
+  </div>
+  <div class="sp-row" id="row-hide" style="display:none">
+    <span class="sp-lbl">Auto-hide (minutes)<small>0 = disabled. Stealth activates after inactivity.</small></span>
+    <input class="sp-in" type="text" id="s-autohide" placeholder="0" style="max-width:60px" oninput="saveCfg()" autocomplete="off">
+  </div>
+  <div class="sp-row">
+    <span class="sp-lbl">Panic wipe hotkey<small>Clears all data instantly — no confirm</small></span>
+    <label class="tog"><input type="checkbox" id="s-panic" onchange="saveCfg()"><span class="ts"></span></label>
+  </div>
+  <div class="sp-row" id="row-panic" style="display:none">
+    <span class="sp-lbl">Panic combo<small>Click and press combination — use an uncommon combo to prevent accidental wipes</small></span>
+    <input class="sp-in" type="text" id="s-pcomb" placeholder="Ctrl+Shift+W" readonly style="cursor:pointer;max-width:160px" onclick="capCombo(this)" autocomplete="off">
+    <button class="sp-btn" onclick="$('s-pcomb').value='Ctrl+Shift+W';saveCfg()">RESET</button>
+  </div>
+  <div class="sp-row">
+    <span class="sp-lbl">Status LED on black screen<small>Tiny dot shows transfer status while stealth is active</small></span>
+    <label class="tog"><input type="checkbox" id="s-led" onchange="saveCfg()"><span class="ts"></span></label>
+  </div>
+  <div class="sp-row">
+    <span class="sp-lbl" style="color:var(--er)">Clear all data<small style="color:var(--tx3)">Wipes chunks and transfer state. Settings kept.</small></span>
+    <button class="sp-btn sp-btn-r" onclick="wipe(true)">⊘ CLEAR</button>
+  </div>
+</div>
+
+<div class="status-card" id="st-card">
+  <div class="st-top">
+    <span class="st-dot pulse" id="st-dot" style="color:var(--wn)">◉</span>
+    <span class="st-main" id="st-main">WAITING FOR CHUNKS</span>
+  </div>
+  <div class="st-sub" id="st-sub">Paste ibv1 chunks or load files below. Chunks are verified and stored as they arrive.</div>
+  <div class="st-chips" id="st-chips"></div>
+  <div class="pb-wrap" id="pb-wrap">
+    <div class="pb"><div class="pf" id="pf"></div></div>
+    <div class="pb-row"><span id="pb-lbl">0 / 0 chunks</span><span id="pb-pct">0%</span></div>
+  </div>
+  <div class="map-wrap" id="mapwrap">
+    <div class="map-legend">
+      <span class="ml"><span class="ml-dot" style="background:var(--chunk-ok)"></span>verified</span>
+      <span class="ml"><span class="ml-dot" style="background:var(--chunk-fail)"></span>corrupted</span>
+      <span class="ml"><span class="ml-dot" style="background:var(--chunk-miss)"></span>pending</span>
+      <span class="ml"><span class="ml-dot" style="background:var(--chunk-empty);border:1px solid #333"></span>none</span>
+    </div>
+    <div class="cmap" id="cmap"></div>
+  </div>
+  <!-- Live injection speed + ETA — updated each time a chunk arrives -->
+  <div id="inj-eta"></div>
+</div>
+
+<div class="box" id="tinfo" style="display:none">
+  <div class="sec-lbl">Active Transfer</div>
+  <div class="tinfo-grid" id="tigrid"></div>
+</div>
+
+<div class="pwd-box" id="pwdbox">
+  <div class="pwd-lbl">⚠ Encrypted — enter decryption password</div>
+  <div class="pwd-row">
+    <input type="password" id="dpwd" placeholder="Decryption password" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <button onclick="var f=$('dpwd');if(f.type==='password'){f.type='text';this.textContent='HIDE';}else{f.type='password';this.textContent='SHOW';}" style="margin:3px 0 0 4px">SHOW</button>
+    <button class="w" onclick="setPwd()">CONFIRM</button>
+  </div>
+  <div id="pwdst" style="font-size:10px;color:var(--tx3);margin-top:5px"></div>
+</div>
+
+<div class="box">
+  <div class="sec-lbl">Input — Files</div>
+  <input type="file" id="fsin" multiple accept=".chunk,.json,.txt">
+  <button class="p" onclick="doFiles()">LOAD FILES</button>
+  <div style="font-size:10px;color:var(--tx3);margin-top:6px;line-height:1.8">
+    Accepts: .chunk · _transfer.json · HID strings .txt · DuckyScript .txt
+  </div>
+</div>
+
+<div class="box">
+  <div class="sec-lbl">Input — Paste / DuckyScript Inject</div>
+  <textarea id="paste" placeholder="Focus here before injecting.&#10;Each ibv1;... line auto-processes on ENTER.&#10;Also accepts full JSON or multiple lines."></textarea>
+  <button class="p" onclick="doPaste()">PROCESS</button>
+  <button onclick="$('paste').value=''">CLEAR</button>
+  <div style="font-size:10px;color:var(--tx3);margin-top:6px">◈ Keep textarea focused during DuckyScript injection</div>
+</div>
+
+<div class="box">
+  <div class="sec-lbl">Actions</div>
+  <button class="p"  id="ab"  onclick="assemble()"        disabled>▶ ASSEMBLE &amp; DOWNLOAD</button>
+  <button class="g"  id="vb"  onclick="reverify()"        disabled>↺ RE-VERIFY</button>
+  <button class="b"  id="vob" onclick="enterVO()"         disabled>◈ VERIFY ONLY</button>
+  <button            id="mb"  onclick="dlMiss()"          disabled>↓ MISSING LIST</button>
+  <button class="r"            onclick="wipe(false)">⊘ CLEAR</button>
+  <div id="vo-bar">
+    <span>◈ VERIFY-ONLY — chunks are checked but NOT stored</span>
+    <button class="b" style="margin:0;padding:4px 8px;font-size:9px" onclick="exitVO()">EXIT</button>
+  </div>
+  <div id="aprog">
+    <div id="aplbl"><span id="ap-msg">Assembling...</span><span id="ap-pct">0%</span></div>
+    <div class="pb"><div class="pf" id="apf" style="box-shadow:none"></div></div>
+  </div>
+</div>
+
+<div class="box">
+  <div class="sec-lbl">Log</div>
+  <div id="log"><span class="ldim">// 7YP3X::RX v4.2 — starting...</span></div>
+</div>
+
+<script id="wsrc" type="text/plain">
+'use strict';
+function toHex(b){var u=new Uint8Array(b),h='';for(var i=0;i<u.length;i++)h+=u[i].toString(16).padStart(2,'0');return h;}
+function hexBuf(h){if(!h||h==='0'||h.length<2)return new ArrayBuffer(0);var b=new Uint8Array(h.length>>1);for(var i=0;i<b.length;i++)b[i]=parseInt(h.substr(i*2,2),16);return b.buffer;}
+function algo(s){return s.replace(/^sha(\d+)$/,'SHA-$1');}
+function hashBuf(b,a){return crypto.subtle.digest(algo(a),b).then(function(h){return toHex(h);});}
+function decomp(b,a){
+  var ds=new DecompressionStream(a),w=ds.writable.getWriter(),r=ds.readable.getReader(),parts=[];
+  w.write(new Uint8Array(b));w.close();
+  function rd(){return r.read().then(function(x){
+    if(x.done){var t=parts.reduce(function(s,p){return s+p.length;},0),o=new Uint8Array(t),off=0;
+      for(var i=0;i<parts.length;i++){o.set(parts[i],off);off+=parts[i].length;}return o.buffer;}
+    parts.push(x.value);return rd();
+  });}
+  return rd();
+}
+function deriveKey(pwd,salt,use){
+  return crypto.subtle.importKey('raw',new TextEncoder().encode(pwd),'PBKDF2',false,['deriveKey'])
+    .then(function(km){return crypto.subtle.deriveKey(
+      {name:'PBKDF2',salt:new Uint8Array(salt),iterations:210000,hash:'SHA-256'},
+      km,{name:'AES-GCM',length:256},false,[use]);});
+}
+function prog(id,pct,msg){self.postMessage({id:id,t:'P',pct:pct,msg:msg});}
+function doAssemble(id,p){
+  prog(id,5,'Joining '+p.chunks.length+' chunks...');
+  var bufs=p.chunks.map(function(c){var b=new Uint8Array(c.data_hex.length>>1);for(var i=0;i<b.length;i++)b[i]=parseInt(c.data_hex.substr(i*2,2),16);return b;});
+  var tot=bufs.reduce(function(s,b){return s+b.length;},0),comb=new Uint8Array(tot),off=0;
+  for(var i=0;i<bufs.length;i++){comb.set(bufs[i],off);off+=bufs[i].length;}
+  var chain=Promise.resolve(comb.buffer);
+  if(p.meta.encrypted){
+    chain=chain.then(function(b){
+      prog(id,25,'Decrypting AES-256-GCM...');
+      return deriveKey(p.pwd,new Uint8Array(hexBuf(p.meta.salt)),'decrypt')
+        .then(function(k){return crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(hexBuf(p.meta.iv))},k,b);})
+        .catch(function(e){throw new Error('Decryption failed: wrong password? ('+e.message+')');});
+    }).then(function(b){prog(id,50,'Decryption OK');return b;});
+  }
+  if(p.meta.compressed&&p.meta.comp_algo&&p.meta.comp_algo!=='none'){
+    chain=chain.then(function(b){
+      prog(id,60,'Decompressing ('+p.meta.comp_algo+')...');
+      return decomp(b,p.meta.comp_algo).catch(function(e){throw new Error('Decompress failed: '+e.message);});
+    }).then(function(b){prog(id,76,'Decompression OK');return b;});
+  }
+  chain=chain.then(function(b){
+    prog(id,85,'Verifying file hash...');
+    return hashBuf(b,p.meta.hash_algo).then(function(h){
+      if(h!==p.meta.file_hash)throw new Error('File hash MISMATCH — data corrupted or wrong password');
+      prog(id,100,'Hash OK — file is byte-perfect');
+      self.postMessage({id:id,t:'R',size:b.byteLength});
+      self.postMessage({id:id,t:'B',buffer:b},[b]);
+    });
+  }).catch(function(e){self.postMessage({id:id,t:'E',msg:e.message});});
+}
+self.onmessage=function(e){var d=e.data;if(d.cmd==='ASSEMBLE')doAssemble(d.id,d.pl);else self.postMessage({id:d.id,t:'E',msg:'Unknown cmd'});};
+</script>
+
+<script>
+/*
+ * ╔══════════════════════════════════════════════════════════════════╗
+ * ║  7YP3X::RX  —  CLIENT DECODER v4.2                             ║
+ * ║  Runs on the TARGET machine — receives injected HID chunks      ║
+ * ╠══════════════════════════════════════════════════════════════════╣
+ * ║  Sections (Ctrl+F the tag to jump):                             ║
+ * ║   [CONFIG]    localStorage key: typex_rx_cfg                    ║
+ * ║   [UTILS]     fmt, esc, lg, lgOk, lgErr, lgWarn, lgInfo         ║
+ * ║   [SETTINGS]  loadCfg, saveCfg, syncCfgUI, applyTitle           ║
+ * ║   [COMBO]     keyboard combo capture, keydown router            ║
+ * ║   [STEALTH]   stOn/stOff, auto-hide timer, panic wipe           ║
+ * ║   [WORKER]    inline worker blob, wAssemble                     ║
+ * ║   [IDB]       dbOpen, dbPut, dbAll, dbClr                       ║
+ * ║   [PARSER]    parseIbv1 — ibv1 + JSON transfer file parser      ║
+ * ║   [HASH]      hashHex — Web Crypto SHA helper                   ║
+ * ║   [VERIFY-ONLY] enterVO / exitVO                                ║
+ * ║   [PROC]      proc — single chunk verify + store                ║
+ * ║   [PROC-LINES] procLines — array iteration with JSON handling   ║
+ * ║   [LOADER]    doFiles — file input handler                      ║
+ * ║   [PASTE]     doPaste, keydown auto-inject listener             ║
+ * ║   [PASSWORD]  setPwd                                            ║
+ * ║   [REVERIFY]  reverify                                          ║
+ * ║   [MISSING]   dlMiss                                            ║
+ * ║   [ASSEMBLE]  assemble — decrypt + decomp + hash verify + dl    ║
+ * ║   [STATUS]    setSt, buildChips                                 ║
+ * ║   [REFRESH]   refresh — full UI rebuild from IndexedDB state    ║
+ * ║   [INIT]      startup, capability checks, IndexedDB open        ║
+ * ╚══════════════════════════════════════════════════════════════════╝
+ */
+'use strict';
+
+// [CONFIG] ────────────────────────────────────────────────────────────────────
+// IndexedDB schema: two stores — 'chunks' (keyPath id = hash:index) + 'meta'
+// DB name updated from IB4_DEC → TYPEX_RX on rebrand.
+var DB='TYPEX_RX',DV=1,CS='chunks',MS='meta';
+var db=null,meta=null,decPwd='',voMode=false;
+var failedIdx={};
+var SK='typex_rx_cfg';
+var cfg={title:'7YP3X::RX',stealth:false,combo:'Ctrl+Shift+H',autohide:0,panic:false,pcomb:'Ctrl+Shift+W',showLed:false};
+
+/* Injection speed tracking — updated on every successful chunk arrival */
+var injStart=0,injCharsRcv=0,injLastTs=0;
+
+// [UTILS] ───────────────────────────────────────────────────────────────────────
+function $(id){return document.getElementById(id);}
+function fmt(n){if(!n)return'0 B';if(n<1024)return n+' B';if(n<1048576)return(n/1024).toFixed(1)+' KB';return(n/1048576).toFixed(2)+' MB';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function lg(m,t){
+  var el=$('log'),ts=new Date().toISOString().substr(11,8);
+  var s=document.createElement('span');s.className='l'+(t||'dim');s.style.display='block';
+  s.textContent='['+ts+'] '+m;el.appendChild(s);el.scrollTop=el.scrollHeight;
+}
+function lgOk(m){lg(m,'ok');}function lgErr(m){lg(m,'err');}
+function lgWarn(m){lg(m,'warn');}function lgInfo(m){lg(m,'info');}
+
+// [SETTINGS] ───────────────────────────────────────────────────────────────────
+// Title is user-configurable so the tab shows something innocent (e.g. 'Calculator').
+// stealth, combo, autohide, panic, pcomb, showLed all live in one JSON blob.
+function loadCfg(){try{var s=JSON.parse(localStorage.getItem(SK)||'{}');Object.keys(s).forEach(function(k){if(k in cfg)cfg[k]=s[k];});}catch(e){}}
+function saveCfg(){
+  cfg.title=($('s-title').value||'7YP3X::RX').trim();
+  cfg.stealth=$('s-stealth').checked;cfg.combo=($('s-combo').value||'Ctrl+Shift+H').trim();
+  cfg.autohide=parseFloat($('s-autohide').value)||0;
+  cfg.panic=$('s-panic').checked;cfg.pcomb=($('s-pcomb').value||'Ctrl+Shift+W').trim();
+  cfg.showLed=$('s-led').checked;
+  try{localStorage.setItem(SK,JSON.stringify(cfg));}catch(e){}
+  $('row-combo').style.display=cfg.stealth?'flex':'none';
+  $('row-hide').style.display=cfg.stealth?'flex':'none';
+  $('row-panic').style.display=cfg.panic?'flex':'none';
+  // Sync LED visibility on the overlay
+  var led=$('st-led');if(led)led.classList.toggle('vis',cfg.showLed);
+  resetAH();
+}
+function applyTitle(){cfg.title=($('s-title').value||'7YP3X::RX').trim();$('pg-title').textContent=cfg.title;$('pg-lbl').textContent='◈ '+cfg.title.toUpperCase();saveCfg();}
+function syncCfgUI(){
+  $('s-title').value=cfg.title;$('s-stealth').checked=cfg.stealth;
+  $('s-combo').value=cfg.combo;$('s-autohide').value=cfg.autohide||'';
+  $('s-panic').checked=cfg.panic;$('s-pcomb').value=cfg.pcomb;
+  $('s-led').checked=cfg.showLed;
+  $('row-combo').style.display=cfg.stealth?'flex':'none';
+  $('row-hide').style.display=cfg.stealth?'flex':'none';
+  $('row-panic').style.display=cfg.panic?'flex':'none';
+  $('pg-title').textContent=cfg.title;$('pg-lbl').textContent='◈ '+cfg.title.toUpperCase();
+  var led=$('st-led');if(led)led.classList.toggle('vis',cfg.showLed);
+}
+
+// [COMBO] ───────────────────────────────────────────────────────────────────────
+// capCombo() puts a field into capture mode — next keydown records the combo.
+// The same keydown handler also dispatches stealth toggle and panic wipe.
+var capTarget=null;
+function capCombo(f){
+  // If already capturing on a different field, restore its previous value first
+  if(capTarget&&capTarget!==f){capTarget.value=capTarget._prev||'';capTarget.style.borderColor='';capTarget=null;}
+  if(capTarget===f)return; // clicking the active field again — ignore
+  capTarget=f;f._prev=f.value;f.value='Press combo...';f.style.borderColor='var(--ac)';
+}
+document.addEventListener('keydown',function(e){
+  if(capTarget){
+    e.preventDefault();
+    var p=[];if(e.ctrlKey)p.push('Ctrl');if(e.altKey)p.push('Alt');if(e.shiftKey)p.push('Shift');if(e.metaKey)p.push('Meta');
+    var k=e.key;if(!['Control','Alt','Shift','Meta'].includes(k))p.push(k.length===1?k.toUpperCase():k);
+    if(p.length>=2){capTarget.value=p.join('+');capTarget.style.borderColor='';capTarget=null;saveCfg();}
+    return;
+  }
+  var p2=[];if(e.ctrlKey)p2.push('Ctrl');if(e.altKey)p2.push('Alt');if(e.shiftKey)p2.push('Shift');if(e.metaKey)p2.push('Meta');
+  var k2=e.key;if(!['Control','Alt','Shift','Meta'].includes(k2))p2.push(k2.length===1?k2.toUpperCase():k2);
+  var pressed=p2.join('+');
+  if(cfg.stealth&&pressed===cfg.combo){e.preventDefault();$('stealth').classList.contains('on')?stOff():stOn();return;}
+  if(cfg.panic&&pressed===cfg.pcomb){e.preventDefault();wipe(true);}
+});
+
+// [STEALTH] ─────────────────────────────────────────────────────────────────────
+// Covers the page with a solid black div. Auto-hide fires after inactivity timer.
+// Panic wipe skips confirm — fastest possible data destruction on hotkey.
+var ahTimer=null,lastAct=Date.now();
+function stOn(){$('stealth').classList.add('on');}
+function stOff(){$('stealth').classList.remove('on');lastAct=Date.now();}
+function resetAH(){
+  if(ahTimer)clearInterval(ahTimer);
+  if(!cfg.stealth||cfg.autohide<=0)return;
+  ahTimer=setInterval(function(){if(Date.now()-lastAct>=cfg.autohide*60000&&!$('stealth').classList.contains('on'))stOn();},15000);
+}
+['mousemove','keydown','touchstart','click'].forEach(function(ev){document.addEventListener(ev,function(){lastAct=Date.now();},true);});
+
+/* ─── Panic wipe ───────────────────────────── */
+function wipe(skip){
+  if(!skip&&!confirm('Clear all stored chunks and transfer state?\nSettings are kept.'))return;
+  Promise.all([dbClr(CS).catch(function(){}),dbClr(MS).catch(function(){})]).then(function(){
+    meta=null;decPwd='';failedIdx={};voMode=false;
+    // Reset injection speed tracker
+    injStart=0;injCharsRcv=0;injLastTs=0;
+    $('inj-eta').style.display='none';
+    $('dpwd').value='';$('pwdst').textContent='';
+    $('pwdbox').style.display='none';$('aprog').style.display='none';
+    $('vo-bar').classList.remove('on');
+    lgWarn('⚠ All chunk data cleared');refresh();
+  });
+}
+
+// [WORKER] ─────────────────────────────────────────────────────────────────────
+// Assembly worker lives in <script id='wsrc'>. Spawned lazily on first use.
+// Handles: hex join → AES-256-GCM decrypt → decomp → SHA hash verify → send buffer
+var wkr=null,pending={};
+function getWkr(){
+  if(wkr)return wkr;
+  var blob=new Blob([$('wsrc').textContent],{type:'application/javascript'});
+  wkr=new Worker(URL.createObjectURL(blob));
+  wkr.onmessage=function(e){
+    var d=e.data,id=d.id,cb=pending[id];if(!cb)return;
+    if(d.t==='P'){if(cb.p)cb.p(d.pct,d.msg);}
+    else if(d.t==='B'){cb.buf=d.buffer;tryRes(id);}
+    else if(d.t==='R'){cb.sz=d.size;cb.ok=true;tryRes(id);}
+    else if(d.t==='E'){delete pending[id];cb.rej(new Error(d.msg));}
+  };
+  return wkr;
+}
+function tryRes(id){var cb=pending[id];if(cb&&cb.ok&&cb.buf){delete pending[id];cb.res({buffer:cb.buf,size:cb.sz});}}
+function wAssemble(pl,onp){
+  return new Promise(function(res,rej){
+    var id='a'+(Date.now()+Math.random()).toString(36);
+    pending[id]={res:res,rej:rej,p:onp,ok:false,buf:null,sz:0};
+    getWkr().postMessage({id:id,cmd:'ASSEMBLE',pl:pl});
+  });
+}
+
+// [IDB] ─────────────────────────────────────────────────────────────────────────
+// Thin Promise wrappers around IndexedDB. Upgrade creates both stores on first run.
+// All errors are caught and surfaced to the log — never silently swallowed.
+function dbOpen(){return new Promise(function(res,rej){
+  var r=indexedDB.open(DB,DV);
+  r.onupgradeneeded=function(e){var d=e.target.result;
+    if(!d.objectStoreNames.contains(CS))d.createObjectStore(CS,{keyPath:'id'});
+    if(!d.objectStoreNames.contains(MS))d.createObjectStore(MS,{keyPath:'file_hash'});
+  };
+  r.onsuccess=function(e){res(e.target.result);};r.onerror=function(e){rej(new Error('IDB: '+(e.target.error)));};
+});}
+function dbPut(st,obj){return new Promise(function(res,rej){try{var tx=db.transaction(st,'readwrite');tx.objectStore(st).put(obj).onsuccess=function(){res();};tx.onerror=function(e){rej(new Error(e.target.error));};}catch(e){rej(e);}});}
+function dbAll(st){return new Promise(function(res,rej){try{var tx=db.transaction(st,'readonly');tx.objectStore(st).getAll().onsuccess=function(e){res(e.target.result||[]);};tx.onerror=function(e){rej(new Error(e.target.error));};}catch(e){rej(e);}});}
+function dbClr(st){return new Promise(function(res,rej){try{var tx=db.transaction(st,'readwrite');tx.objectStore(st).clear().onsuccess=function(){res();};tx.onerror=function(e){rej(new Error(e.target.error));};}catch(e){rej(e);}});}
+
+// [PARSER] ─────────────────────────────────────────────────────────────────────
+// Parses an ibv1 semicolon string OR a full JSON transfer file.
+// Field 13 (nameHex) is optional — absent in older transfers, falls back gracefully.
+function parseIbv1(line){
+  line=line.trim();if(!line||line[0]==='#')return null;
+  if(line.substr(0,5)==='ibv1;'){
+    var p=line.split(';');
+    if(p.length<12){lgErr('ibv1: only '+p.length+' fields (need ≥12) — re-inject ('+line.substr(0,40)+'...)');return null;}
+    var idx=parseInt(p[1],10);
+    if(isNaN(idx)||idx<0){lgErr('Bad chunk_index "'+p[1]+'" — re-inject');return null;}
+    // Field 13 (index 12): hex-encoded filename — optional, absent in older transfers
+    var nameHex=p.length>12?(p[12]||''):'';
+    var filename='recovered_file';
+    if(nameHex.length>0&&nameHex.length%2===0){
+      try{var nb=new Uint8Array(nameHex.length/2);for(var ni=0;ni<nb.length;ni++)nb[ni]=parseInt(nameHex.substr(ni*2,2),16);filename=new TextDecoder().decode(nb);}catch(xe){}
+    }
+    return{idx:idx,total:parseInt(p[2],10),chash:p[3],fhash:p[4],comp:p[5]==='1',calgo:p[6]||'none',enc:p[7]==='1',salt:p[8]||'0',iv:p[9]||'0',halgo:p[10]||'sha256',hex:p[11]||'',filename:filename};
+  }
+  try{
+    var o=JSON.parse(line);
+    if(typeof o==='string')return parseIbv1(o);
+    if(o.chunks&&Array.isArray(o.chunks))return{_tf:true,obj:o};
+    if(o.chunk_index!==undefined)return{idx:o.chunk_index,total:o.total_chunks,chash:o.chunk_hash,fhash:o.file_hash,comp:!!o.compressed,calgo:o.comp_algo||'none',enc:!!o.encrypted,salt:o.salt||'0',iv:o.iv||'0',halgo:o.hash_algo||'sha256',hex:o.data_hex||'',filename:'recovered_file'};
+  }catch(x){}
+  return null;
+}
+
+// [HASH] ───────────────────────────────────────────────────────────────────────
+function hashHex(hexStr,alg){
+  var an=alg.replace(/^sha(\d+)$/,'SHA-$1'),b=new Uint8Array(hexStr.length>>1);
+  for(var i=0;i<b.length;i++)b[i]=parseInt(hexStr.substr(i*2,2),16);
+  return crypto.subtle.digest(an,b.buffer).then(function(h){return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0');}).join('');});
+}
+
+// [VERIFY-ONLY] ────────────────────────────────────────────────────────────────
+// Verify-only mode lets you check incoming chunks without writing to IndexedDB.
+// Useful when you want to test injection quality without committing to a transfer.
+function enterVO(){voMode=true;$('vo-bar').classList.add('on');$('vob').disabled=true;lgInfo('Verify-only — chunks checked but not stored');}
+function exitVO(){voMode=false;$('vo-bar').classList.remove('on');$('vob').disabled=false;lgInfo('Exited verify-only mode');}
+
+// [PROC] ───────────────────────────────────────────────────────────────────────
+// Core receive function — hash-verifies the chunk then writes to IndexedDB.
+// First chunk sets up transfer metadata. Cross-transfer chunks are rejected.
+function proc(parsed){
+  if(!parsed||parsed._tf)return Promise.resolve(false);
+  var idx=parsed.idx;
+  if(isNaN(idx)||idx<0){lgErr('Invalid index: '+idx);return Promise.resolve(false);}
+  if(!parsed.hex||!parsed.hex.length){lgErr('#'+idx+' empty data — truncated injection?');return Promise.resolve(false);}
+  if(parsed.hex.length%2!==0){lgErr('#'+idx+' odd hex length ('+parsed.hex.length+') — truncated');return Promise.resolve(false);}
+  if(meta&&meta.file_hash!==parsed.fhash){lgErr('#'+idx+' different transfer — use CLEAR first');return Promise.resolve(false);}
+  var smP=Promise.resolve();
+  if(!meta){
+    meta={file_hash:parsed.fhash,total_chunks:parsed.total,filename:parsed.filename||'recovered_file',
+      hash_algo:parsed.halgo||'sha256',compressed:parsed.comp,comp_algo:parsed.calgo||'none',
+      encrypted:parsed.enc,salt:parsed.salt||'0',iv:parsed.iv||'0'};
+    smP=dbPut(MS,meta).then(function(){lgInfo('Transfer: '+meta.filename+' | '+meta.total_chunks+' chunks | enc:'+meta.encrypted);}).catch(function(e){lgErr('Meta save: '+e.message);});
+  }
+  return smP.then(function(){
+    return hashHex(parsed.hex,meta.hash_algo).then(function(h){
+      if(h!==parsed.chash){
+        failedIdx[idx]=true;
+        lgErr('✗ HASH FAIL #'+String(idx).padStart(4,'0')+' got:'+h.substr(0,12)+'... — re-inject');
+        refresh();return false;
+      }
+      if(voMode){lgOk('✓ VERIFIED #'+String(idx).padStart(4,'0')+' (verify-only)');return true;}
+      return dbPut(CS,{id:meta.file_hash+':'+idx,file_hash:meta.file_hash,chunk_index:idx,chunk_hash:parsed.chash,chunk_size:parsed.hex.length>>1,data_hex:parsed.hex}).then(function(){
+        lgOk('✓ #'+String(idx).padStart(4,'0')+' stored ('+Math.round(parsed.hex.length>>1)+' B)');
+        // Track injection rate — measure chars received vs elapsed wall time
+        var now=Date.now();
+        // Estimate ibv1 line length: hex data + fixed header overhead (~152 chars)
+        var lineLen=parsed.hex.length+152;
+        if(!injStart){injStart=now;injCharsRcv=0;}
+        injCharsRcv+=lineLen;injLastTs=now;
+        return true;
+      });
+    });
+  }).catch(function(e){lgErr('#'+idx+' error: '+e.message);return false;});
+}
+
+// [PROC-LINES] ─────────────────────────────────────────────────────────────────
+// Iterates an array of lines, calling proc() on each. Handles embedded JSON blobs
+// (full transfer files) that can appear as single lines in the paste area.
+function procLines(lines){
+  var ok=0,fail=0,i=0;
+  function next(){
+    if(i>=lines.length)return Promise.resolve({ok:ok,fail:fail});
+    var line=lines[i++];
+    var p=parseIbv1(line);
+    if(!p){
+      try{var o=JSON.parse(line);if(o.chunks&&Array.isArray(o.chunks)){var jl=o.chunks;var j=0;function nj(){if(j>=jl.length)return next();return proc(parseIbv1(jl[j++])).then(function(r){r?ok++:fail++;return nj();});}return nj();}}catch(x){}
+      fail++;return next();
+    }
+    if(p._tf){if(p.obj.chunks){var kl=p.obj.chunks;var k=0;function nk(){if(k>=kl.length)return next();return proc(parseIbv1(kl[k++])).then(function(r){r?ok++:fail++;return nk();});}return nk();}fail++;return next();}
+    return proc(p).then(function(r){r?ok++:fail++;return next();});
+  }
+  return next();
+}
+
+// [LOADER] ──────────────────────────────────────────────────────────────────────
+// Reads files selected in the file input. Handles JSON transfer files (parsed whole),
+// DuckyScript .txt (extracts STRING lines), and plain ibv1 list files.
+function doFiles(){
+  var files=$('fsin').files;if(!files.length){lgWarn('No files selected');return;}
+  var tot={ok:0,fail:0},i=0;
+  function nf(){
+    if(i>=files.length){lg(tot.ok+' accepted, '+tot.fail+' failed',tot.ok>0?'ok':'warn');refresh();return;}
+    var f=files[i++];
+    f.text().then(function(txt){
+      var trimmed=txt.trim();
+      // Parse full JSON transfer file as a whole — never line-by-line.
+      // Pretty-printed JSON has trailing commas per line that break per-line parsing.
+      if(trimmed[0]==='{'){
+        try{
+          var obj=JSON.parse(trimmed);
+          if(obj.chunks&&Array.isArray(obj.chunks)){
+            lgInfo(f.name+': JSON — '+obj.chunks.length+' chunks');
+            var cl=obj.chunks,j=0,ok=0,fail=0;
+            function nc(){if(j>=cl.length){tot.ok+=ok;tot.fail+=fail;nf();return;}proc(parseIbv1(cl[j++])).then(function(r){r?ok++:fail++;nc();});}
+            nc();return;
+          }
+        }catch(je){lgWarn(f.name+': JSON parse failed — trying plain text');}
+      }
+      var dlines=txt.split('\n').filter(function(l){return l.trim().startsWith('STRING ');});
+      var lines=dlines.length?dlines.map(function(l){return l.trim().substr(7);}):txt.split('\n').map(function(l){return l.trim();}).filter(function(l){return l&&l[0]!=='#'&&!l.startsWith('REM')&&!l.startsWith('DELAY')&&!l.startsWith('ENTER');});
+      if(!lines.length){lgWarn(f.name+': no valid lines');tot.fail++;nf();return;}
+      lgInfo(f.name+': '+lines.length+' lines...');
+      procLines(lines).then(function(r){tot.ok+=r.ok;tot.fail+=r.fail;nf();});
+    }).catch(function(e){lgErr('Read '+f.name+': '+e.message);tot.fail++;nf();});
+  }
+  nf();
+}
+
+// [PASTE] ───────────────────────────────────────────────────────────────────────
+// Processes the paste textarea manually. The Enter keydown handler below is what
+// auto-fires during live DuckyScript injection — no button click needed.
+function doPaste(){
+  var txt=$('paste').value.trim();if(!txt){lgWarn('Empty');return;}
+  var lines=txt.split('\n').map(function(l){return l.trim();}).filter(function(l){return l&&l[0]!=='#';});
+  procLines(lines).then(function(r){lg(r.ok+' accepted, '+r.fail+' failed',r.ok>0?'ok':'warn');if(r.ok>0)$('paste').value='';refresh();});
+}
+
+/* ─── Auto-process on Enter (DuckyScript injection) */
+$('paste').addEventListener('keydown',function(e){
+  if(e.key!=='Enter')return;
+  var lines=this.value.split('\n');
+  var last=lines[lines.length-1].trim();
+  if(last.substr(0,5)!=='ibv1;')return;
+  e.preventDefault();
+  var p=parseIbv1(last);if(!p)return;
+  var ta=this;
+  proc(p).then(function(ok){if(ok){ta.value='';refresh();}});
+});
+
+// [PASSWORD] ────────────────────────────────────────────────────────────────────
+// Password is stored in decPwd var — never written to localStorage or IndexedDB.
+function setPwd(){
+  var pwd=($('dpwd').value||'').trim();
+  if(!pwd){$('pwdst').textContent='Cannot be empty';$('pwdst').style.color='var(--er)';return;}
+  decPwd=pwd;$('pwdst').textContent='✓ Password set';$('pwdst').style.color='var(--ok)';lgOk('Password confirmed');
+}
+
+// [REVERIFY] ────────────────────────────────────────────────────────────────────
+// Re-hashes all stored chunks against their stored hash. Catches DB corruption
+// or any chunks that were stored despite a hash collision (shouldn't happen but...).
+function reverify(){
+  if(!meta){lgWarn('No active transfer');return;}
+  dbAll(CS).then(function(all){
+    if(!all.length){lgWarn('No chunks stored');return;}
+    lgInfo('Re-verifying '+all.length+' chunks...');
+    var ok=0,fail=0,i=0;
+    function nxt(){
+      if(i>=all.length){lg('Re-verify: '+ok+' OK, '+fail+' corrupted',fail?'err':'ok');refresh();return;}
+      var rec=all[i++];
+      hashHex(rec.data_hex,meta.hash_algo).then(function(h){
+        if(h===rec.chunk_hash)ok++;
+        else{fail++;failedIdx[rec.chunk_index]=true;lgErr('✗ Corrupted stored chunk #'+rec.chunk_index);}
+        nxt();
+      }).catch(function(e){fail++;lgErr('#'+rec.chunk_index+': '+e.message);nxt();});
+    }
+    nxt();
+  }).catch(function(e){lgErr('Re-verify: '+e.message);});
+}
+
+/* ─── Export missing ───────────────────────── */
+function dlMiss(){
+  if(!meta)return;
+  dbAll(CS).then(function(all){
+    var got={};all.forEach(function(r){got[r.chunk_index]=true;});
+    var miss=[];for(var i=0;i<meta.total_chunks;i++)if(!got[i])miss.push(i);
+    if(!miss.length){lgOk('No missing chunks');return;}
+    var txt='# IB Decoder — Missing Chunks\n# File: '+meta.filename+'\n# Hash: '+meta.file_hash+'\n# Missing: '+miss.length+'/'+meta.total_chunks+'\n\n'+miss.join('\n');
+    var b=new Blob([txt],{type:'text/plain'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='missing_chunks.txt';a.click();
+    lgWarn('Exported '+miss.length+' missing indices');
+  }).catch(function(e){lgErr('dlMiss: '+e.message);});
+}
+
+/* ─── Assemble ─────────────────────────────── */
+function assemble(){
+  if(!meta){lgWarn('No active transfer');return;}
+  if(meta.encrypted&&!decPwd){lgErr('Encrypted — enter password first');$('pwdbox').style.display='block';$('dpwd').focus();return;}
+  dbAll(CS).then(function(all){
+    all.sort(function(a,b){return a.chunk_index-b.chunk_index;});
+    if(all.length!==meta.total_chunks){lgErr('Missing '+(meta.total_chunks-all.length)+' chunks — cannot assemble');return;}
+    for(var i=0;i<all.length;i++)if(all[i].chunk_index!==i){lgErr('Sequence error at pos '+i);return;}
+    $('aprog').style.display='block';$('ab').disabled=true;
+    wAssemble({chunks:all.map(function(r){return{chunk_index:r.chunk_index,data_hex:r.data_hex};}),meta:meta,pwd:decPwd},
+      function(pct,msg){$('apf').style.width=pct+'%';$('ap-pct').textContent=Math.round(pct)+'%';$('ap-msg').textContent=msg;}
+    ).then(function(res){
+      var blob=new Blob([res.buffer]),url=URL.createObjectURL(blob);
+      var a=document.createElement('a');a.href=url;a.download=meta.filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+      lgOk('✓ Downloaded: '+meta.filename+' ('+fmt(res.size)+')');
+      setSt('g','✓ COMPLETE','Downloaded: '+esc(meta.filename));
+      $('ab').disabled=false;
+    }).catch(function(e){lgErr('FAILED: '+e.message);setSt('r','✗ FAILED',e.message.substr(0,100));$('ab').disabled=false;});
+  }).catch(function(e){lgErr('Assemble read: '+e.message);$('ab').disabled=false;});
+}
+
+// [STATUS] ─────────────────────────────────────────────────────────────────────
+// setSt syncs: status dot colour, main text, sub text, dot pulse animation,
+// and the stealth LED dot colour — all in one call.
+// Color keys: y=yellow/warning, g=green/ok, r=red/error, b=blue/info, a=accent
+function setSt(col,main,sub){
+  var colors={y:'var(--wn)',g:'var(--ok)',r:'var(--er)',b:'var(--inf)',a:'var(--ac)'};
+  $('st-dot').style.color=colors[col]||colors.y;
+  $('st-main').textContent=main;
+  if(sub!==undefined)$('st-sub').textContent=sub;
+  /* Pulse only when waiting */
+  $('st-dot').classList.toggle('pulse',col==='y'||col==='a');
+  /* Sync status LED dot on stealth overlay */
+  var led=$('st-led');if(led)led.style.background=colors[col]||colors.y;
+}
+
+/* ─── Capability chips ─────────────────────── */
+function buildChips(){
+  var caps=[
+    {label:'WEB CRYPTO',ok:!!(window.crypto&&crypto.subtle)},
+    {label:'WORKER',ok:typeof Worker!=='undefined'},
+    {label:'DECOMPRESS',ok:typeof DecompressionStream!=='undefined'},
+    {label:'INDEXEDDB',ok:!!window.indexedDB}
+  ];
+  $('st-chips').innerHTML=caps.map(function(c){return'<span class="chip chip-'+(c.ok?'ok':'er')+'">'+c.label+' '+(c.ok?'✓':'✗')+'</span>';}).join('');
+}
+
+// [REFRESH] ─────────────────────────────────────────────────────────────────────
+// Reads entire state from IndexedDB and rebuilds all UI elements.
+// Called after every chunk proc, file load, wipe, and on init.
+// The chunk map uses persistent DOM cells so CSS transitions fire on each arrival.
+function refresh(){
+  Promise.all([dbAll(CS).catch(function(){return[];}),dbAll(MS).catch(function(){return[];})]).then(function(res){
+    var all=res[0],ma=res[1];
+    if(!meta&&ma.length>0){meta=ma[0];lgInfo('Resumed: '+meta.filename+' ('+meta.total_chunks+' chunks)');}
+    if(!meta){
+      setSt('y','WAITING FOR CHUNKS','Paste ibv1 chunks or load files below.');
+      $('pb-wrap').style.display='none';$('tinfo').style.display='none';$('mapwrap').style.display='none';$('pwdbox').style.display='none';
+      buildChips();
+      $('ab').disabled=true;$('vb').disabled=true;$('vob').disabled=true;$('mb').disabled=true;
+      return;
+    }
+    $('st-chips').innerHTML='';
+    var got=all.length,tot=meta.total_chunks,done=got===tot;
+    if(done)setSt('g','ALL '+tot+' CHUNKS RECEIVED',meta.encrypted&&!decPwd?'Enter password then click ASSEMBLE':'Click ASSEMBLE to reconstruct '+meta.filename);
+    else setSt('a','RECEIVING — '+got+'/'+tot,(tot-got)+' chunk(s) still missing');
+    $('pb-wrap').style.display='block';
+    $('pf').style.width=(tot?got/tot*100:0)+'%';
+    $('pb-lbl').textContent=got+' / '+tot+' chunks';
+    $('pb-pct').textContent=tot?Math.round(got/tot*100)+'%':'0%';
+    $('tinfo').style.display='block';
+    // Estimate total chars: sum hex lengths + per-chunk ibv1 overhead
+    var estCharsPerChunk=injCharsRcv&&got>0?Math.round(injCharsRcv/got):0;
+    var totalCharsEst=estCharsPerChunk>0?estCharsPerChunk*meta.total_chunks:0;
+    var charsBeta=totalCharsEst>0?'~'+totalCharsEst.toLocaleString():got>0?'measuring...':'—';
+    $('tigrid').innerHTML=
+      '<div class="ti" style="flex-basis:100%"><span class="ti-k">FILE</span><span class="ti-v">'+esc(meta.filename)+'</span></div>'+
+      '<div class="ti"><span class="ti-k">CHUNKS</span><span class="ti-v">'+got+'/'+tot+'</span></div>'+
+      '<div class="ti"><span class="ti-k">COMPRESSED</span><span class="ti-v" style="color:'+(meta.compressed?'var(--wn)':'var(--tx3)')+'">'+( meta.compressed?'YES — '+meta.comp_algo:'NO')+'</span></div>'+
+      '<div class="ti"><span class="ti-k">ENCRYPTED</span><span class="ti-v" style="color:'+(meta.encrypted?'var(--wn)':'var(--tx3)')+'">'+( meta.encrypted?'YES':'NO')+'</span></div>'+
+      '<div class="ti"><span class="ti-k">HASH</span><span class="ti-v">'+meta.hash_algo.toUpperCase()+'</span></div>'+
+      '<div class="ti" style="flex-basis:100%"><span class="ti-k">TOTAL CHARS <span style="font-size:8px;background:var(--wn);color:#000;padding:1px 4px">BETA</span></span><span class="ti-v" style="color:var(--wn)">'+charsBeta+'</span></div>'+
+      '<div class="ti" style="flex-basis:100%"><span class="ti-k">FILE HASH</span><span class="ti-v" style="font-size:9px;color:var(--tx3)">'+meta.file_hash+'</span></div>';
+    if(meta.encrypted&&done&&!decPwd)$('pwdbox').style.display='block';else if(decPwd)$('pwdbox').style.display='none';
+    /* ── Injection ETA strip ─────────────────────────────────────────────────
+       Only shown when actively receiving (not done, injStart set, ≥2 chunks in).
+       Rate is measured from actual wall time since first chunk arrived.
+    ── */
+    var eta=$('inj-eta');
+    if(injStart&&got>=2&&!done){
+      var elapsed=(Date.now()-injStart)/1000;
+      var rate=Math.round(injCharsRcv/elapsed);
+      var remaining=Math.max(0,totalCharsEst-injCharsRcv);
+      var etaSec=rate>0?remaining/rate:0;
+      var etaStr=etaSec<60?Math.round(etaSec)+'s':Math.floor(etaSec/60)+'m '+Math.round(etaSec%60)+'s';
+      eta.style.display='block';
+      eta.innerHTML='⏱ <b>'+rate.toLocaleString()+'</b> c/s · ETA <b>'+etaStr+'</b>'+(totalCharsEst?' · '+injCharsRcv.toLocaleString()+'/'+totalCharsEst.toLocaleString()+' chars':'');
+    }else if(done){
+      // Show final measured rate when transfer completes
+      if(injStart&&injLastTs>injStart){
+        var finalElapsed=(injLastTs-injStart)/1000;
+        var finalRate=Math.round(injCharsRcv/finalElapsed);
+        eta.style.display='block';
+        eta.innerHTML='✓ Injection complete — avg <b>'+finalRate.toLocaleString()+'</b> c/s over '+finalElapsed.toFixed(1)+'s';
+      }else{eta.style.display='none';}
+    }else{eta.style.display='none';}
+    /* ── Chunk map — persistent cells so CSS transitions fire on each arrival ── */
+    $('mapwrap').style.display='block';
+    var gotSet={};all.forEach(function(r){gotSet[r.chunk_index]=true;});
+    var map=$('cmap');
+    if(map.children.length!==tot){
+      map.innerHTML='';
+      var frag=document.createDocumentFragment();
+      for(var i=0;i<tot;i++){
+        var cell=document.createElement('div');
+        cell.className='cm miss';cell.title='#'+i;
+        frag.appendChild(cell);
+      }
+      map.appendChild(frag);
+    }
+    var cells=map.children;
+    for(var ci=0;ci<cells.length;ci++){
+      var newCls='cm';
+      if(gotSet[ci])newCls+=' got';
+      else if(failedIdx[ci])newCls+=' fail';
+      else newCls+=' miss';
+      if(cells[ci].className!==newCls){
+        cells[ci].className=newCls+(gotSet[ci]?' new':'');
+        if(gotSet[ci]){
+          (function(c){setTimeout(function(){c.classList.remove('new');},320);})(cells[ci]);
+        }
+      }
+    }
+    $('ab').disabled=!done;$('vb').disabled=got===0;$('vob').disabled=voMode;$('mb').disabled=(tot-got)===0;
+  }).catch(function(e){lgErr('Refresh: '+e.message);});
+}
+
+/* ─── Mobile long-press stealth (h1 header) ───
+   Hold finger on the page title bar for 800 ms to
+   toggle the stealth overlay — no keyboard needed.
+────────────────────────────────────────────── */
+(function(){
+  var _t=null;
+  var _el=document.querySelector('h1');
+  if(!_el)return;
+  _el.addEventListener('touchstart',function(){
+    _t=setTimeout(function(){_t=null;$('stealth').classList.contains('on')?stOff():stOn();},800);
+  },{passive:true});
+  function _c(){if(_t){clearTimeout(_t);_t=null;}}
+  _el.addEventListener('touchend',_c);_el.addEventListener('touchmove',_c);
+})();
+
+// [INIT] ─────────────────────────────────────────────────────────────────────────
+// Capability checks run before anything else so the user knows immediately
+// if their browser can't support the pipeline.
+(function(){
+  loadCfg();syncCfgUI();resetAH();buildChips();
+  if(!window.crypto||!crypto.subtle)lgErr('Web Crypto unavailable — needs HTTPS or localhost');
+  if(typeof DecompressionStream==='undefined')lgWarn('DecompressionStream unavailable — decompression will fail');
+  if(typeof Worker==='undefined')lgErr('Workers unavailable — assembly will fail');
+  if(!window.indexedDB)lgErr('IndexedDB unavailable — avoid incognito mode');
+  dbOpen().then(function(d){db=d;lgOk('Storage ready');return dbAll(MS);}).then(function(m){
+    if(m&&m.length)meta=m[0];
+    refresh();lgOk('7YP3X::RX v4.2 ready');
+  }).catch(function(e){lgErr('Init: '+e.message);});
+  try{getWkr();lgInfo('Worker ready');}catch(e){lgErr('Worker init: '+e.message);}
+
+  // Mobile stealth trigger — no keyboard on mobile, so three taps is the signal.
+  // Has to be deliberate (3 taps in 600ms) so it doesn't fire from normal scrolling.
+  // Taps on buttons/inputs are ignored so nothing interferes with normal usage.
+  (function(){
+    var tc=0,tt=null;
+    document.addEventListener('touchend',function(e){
+      var el=e.target;
+      while(el&&el!==document.body){
+        if(/^(BUTTON|INPUT|SELECT|TEXTAREA|A|LABEL)$/.test(el.tagName))return;
+        el=el.parentNode;
+      }
+      tc++;clearTimeout(tt);tt=setTimeout(function(){tc=0;},600);
+      if(tc>=3){tc=0;clearTimeout(tt);$('stealth').classList.contains('on')?stOff():stOn();}
+    },{passive:true});
+  })();
+})();
+</script>
+</body>
+</html>

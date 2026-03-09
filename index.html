@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>7YP3X-L1N3F33D</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────────────────────── */
+:root{
+  --bg:#070705;--bg2:#0d0d0a;--bg3:#141410;
+  --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);
+  --tx:#c8c0b0;--tx2:#7a6e60;--tx3:#3a3630;
+  --ac:#e8922a;--ac2:#5bc8f5;--ac3:#c8a84a;
+  --ok:#5cbf6a;--er:#d94040;--wn:#e8b840;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'IBM Plex Sans',sans-serif;
+  --gw:232,146,42;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--tx);
+  font-family:var(--sans);min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── SCANLINES ───────────────────────────────────────────────────── */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,
+    rgba(0,0,0,.05) 3px,rgba(0,0,0,.05) 4px);
+}
+
+/* ── CLASSBAR ────────────────────────────────────────────────────── */
+.classbar{
+  background:#701515;padding:5px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:10;
+}
+.classbar span{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.3em;color:#fff}
+#clk{color:rgba(255,255,255,.45)}
+
+/* ── HERO ────────────────────────────────────────────────────────── */
+.hero{
+  max-width:700px;margin:0 auto;
+  padding:64px 24px 48px;text-align:center;
+  position:relative;z-index:1;
+}
+.brand-tag{
+  display:inline-block;font-family:var(--mono);font-size:9px;font-weight:700;
+  letter-spacing:.16em;color:var(--bg);background:var(--ac);padding:3px 10px;
+  margin-bottom:14px;
+}
+.hero h1{
+  font-family:var(--mono);font-size:clamp(28px,6vw,52px);font-weight:700;
+  color:var(--ac);letter-spacing:.04em;line-height:1.08;margin-bottom:10px;
+}
+.hero-sub{
+  font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--tx2);
+  text-transform:uppercase;margin-bottom:20px;
+}
+.hero p{
+  font-family:var(--sans);font-size:14px;color:var(--tx2);line-height:1.8;
+  max-width:460px;margin:0 auto 32px;
+}
+
+/* ── CARDS ───────────────────────────────────────────────────────── */
+.cards{
+  max-width:820px;margin:0 auto;
+  padding:0 20px 64px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:14px;
+  position:relative;z-index:1;
+}
+
+.card{
+  display:block;text-decoration:none;
+  background:var(--bg2);border:1px solid var(--bd);
+  padding:22px 20px;position:relative;
+  transition:border-color .2s,transform .15s;
+  cursor:pointer;
+  overflow:hidden;
+}
+/* Glow line on hover */
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;
+  height:2px;background:var(--card-ac,var(--ac));
+  opacity:0;transition:opacity .2s;
+}
+.card:hover{
+  border-color:var(--card-ac,var(--ac));
+  transform:translateY(-2px);
+}
+.card:hover::before{opacity:1}
+.card:active{transform:translateY(0)}
+
+.card-label{
+  font-family:var(--mono);font-size:8px;font-weight:700;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--bg);background:var(--card-ac,var(--ac));
+  display:inline-block;padding:2px 8px;margin-bottom:12px;
+}
+.card-name{
+  font-family:var(--mono);font-size:15px;font-weight:700;
+  color:var(--card-ac,var(--ac));letter-spacing:.04em;
+  margin-bottom:4px;line-height:1.2;
+}
+.card-role{
+  font-family:var(--mono);font-size:9px;letter-spacing:.14em;
+  color:var(--tx2);text-transform:uppercase;margin-bottom:14px;
+}
+.card-body{
+  font-family:var(--sans);font-size:12px;color:var(--tx2);
+  line-height:1.75;margin-bottom:14px;
+}
+.card-meta{
+  display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;
+}
+.badge{
+  font-family:var(--mono);font-size:8px;font-weight:700;
+  letter-spacing:.1em;padding:2px 7px;border:1px solid;
+}
+.b-ok {border-color:rgba(92,191,106,.35);color:var(--ok)}
+.b-wn {border-color:rgba(232,184,64,.35);color:var(--wn)}
+.b-inf{border-color:rgba(91,200,245,.3);color:var(--ac2)}
+.b-ac {border-color:rgba(232,146,42,.35);color:var(--ac)}
+
+/* Arrow indicator */
+.card-arrow{
+  position:absolute;bottom:18px;right:18px;
+  font-family:var(--mono);font-size:14px;
+  color:var(--tx3);transition:color .2s,right .15s;
+}
+.card:hover .card-arrow{color:var(--card-ac,var(--ac));right:14px}
+
+/* ── DIVIDER ─────────────────────────────────────────────────────── */
+.divider{
+  max-width:820px;margin:0 auto;padding:0 20px 20px;
+  position:relative;z-index:1;
+}
+.div-line{
+  border:none;border-top:1px solid var(--bd);margin-bottom:20px;
+}
+.div-lbl{
+  font-family:var(--mono);font-size:9px;letter-spacing:.25em;
+  color:var(--tx3);text-transform:uppercase;margin-bottom:14px;
+}
+
+/* ── FOOTER ──────────────────────────────────────────────────────── */
+footer{
+  border-top:1px solid var(--bd);padding:16px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:8px;position:relative;z-index:1;
+}
+footer span{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--tx3)}
+footer a{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--tx2);text-decoration:none}
+footer a:hover{color:var(--ac)}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────── */
+@media(max-width:520px){
+  .hero{padding:40px 16px 32px}
+  .cards{grid-template-columns:1fr;padding:0 16px 48px}
+  .hero h1{font-size:28px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── CLASSBAR ── -->
+<div class="classbar">
+  <span>■ 7YP3X-L1N3F33D · HID-KBD FILE TRANSFER PROTOCOL</span>
+  <span id="clk"></span>
+</div>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="brand-tag">7YP3X-L1N3F33D</div>
+  <h1>HID FILE<br>TRANSFER</h1>
+  <div class="hero-sub">BadUSB · Flipper Zero · NetHunter · DuckyScript</div>
+  <p>
+    Encode any file into typed hex strings. Inject over HID into any browser.
+    No network. No USB drive. No install required on the target.
+  </p>
+</div>
+
+<!-- ── TOOL CARDS ── -->
+<div class="cards">
+
+  <!-- ENCODER -->
+  <a href="encoder.html" class="card" style="--card-ac:var(--ac)">
+    <div class="card-label">Operator</div>
+    <div class="card-name">TX-T3RM1N4L</div>
+    <div class="card-role">Encoder · v4.0</div>
+    <div class="card-body">
+      Encode files, configure chunk size and compression, optionally encrypt
+      with AES-256-GCM, then export as DuckyScript, HID strings, JSON, or ZIP.
+    </div>
+    <div class="card-meta">
+      <span class="badge b-wn">Needs internet</span>
+      <span class="badge b-ac">12 themes</span>
+    </div>
+    <span class="card-arrow">→</span>
+  </a>
+
+  <!-- DECODER FULL -->
+  <a href="decoder.html" class="card" style="--card-ac:var(--ac2)">
+    <div class="card-label">Target · Full</div>
+    <div class="card-name">7YP3X::RX</div>
+    <div class="card-role">Decoder · v4.2</div>
+    <div class="card-body">
+      Full-featured client decoder. Verify-only mode, panic wipe, live injection
+      ETA, chunk map, missing chunk export, and stealth overlay.
+    </div>
+    <div class="card-meta">
+      <span class="badge b-ok">100% offline</span>
+      <span class="badge b-inf">IndexedDB</span>
+    </div>
+    <span class="card-arrow">→</span>
+  </a>
+
+  <!-- DECODER LITE -->
+  <a href="decoder-lite.html" class="card" style="--card-ac:var(--ac3)">
+    <div class="card-label">Target · Lite</div>
+    <div class="card-name">7YP3X::RX-L1T3</div>
+    <div class="card-role">Decoder · v4.1</div>
+    <div class="card-body">
+      Minimal single-file decoder with no comments and no external dependencies.
+      Smaller footprint — useful when the decoder itself needs to be transferred first.
+    </div>
+    <div class="card-meta">
+      <span class="badge b-ok">100% offline</span>
+      <span class="badge b-ok">329 lines</span>
+    </div>
+    <span class="card-arrow">→</span>
+  </a>
+
+</div>
+
+<!-- ── INFO STRIP ── -->
+<div class="divider">
+  <hr class="div-line">
+  <div class="div-lbl">How it works</div>
+  <div class="cards" style="padding:0 0 32px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+
+    <div class="card" style="--card-ac:var(--tx2);cursor:default">
+      <div class="card-label" style="background:var(--tx3);color:var(--tx2)">Step 1</div>
+      <div class="card-name" style="font-size:12px;color:var(--tx)">Drop file into TX-T3RM1N4L</div>
+      <div class="card-body">Configure settings. Click encode. Download the DuckyScript output.</div>
+    </div>
+
+    <div class="card" style="--card-ac:var(--tx2);cursor:default">
+      <div class="card-label" style="background:var(--tx3);color:var(--tx2)">Step 2</div>
+      <div class="card-name" style="font-size:12px;color:var(--tx)">Open decoder on target</div>
+      <div class="card-body">Load 7YP3X::RX in the target browser. Focus the paste textarea.</div>
+    </div>
+
+    <div class="card" style="--card-ac:var(--tx2);cursor:default">
+      <div class="card-label" style="background:var(--tx3);color:var(--tx2)">Step 3</div>
+      <div class="card-name" style="font-size:12px;color:var(--tx)">Run the script</div>
+      <div class="card-body">Flipper Zero or NetHunter injects each chunk. Watch the map fill up.</div>
+    </div>
+
+    <div class="card" style="--card-ac:var(--tx2);cursor:default">
+      <div class="card-label" style="background:var(--tx3);color:var(--tx2)">Step 4</div>
+      <div class="card-name" style="font-size:12px;color:var(--tx)">Assemble and download</div>
+      <div class="card-body">All chunks verified against SHA hash. File saved to disk.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <span>7YP3X-L1N3F33D · Made by MrBros · For personal home use only</span>
+  <a href="README.md" target="_blank">README / Docs</a>
+</footer>
+
+<script>
+// UTC clock tick
+setInterval(function(){
+  var el = document.getElementById('clk');
+  if(el) el.textContent = new Date().toISOString().substr(0,19).replace('T',' ') + ' UTC';
+}, 1000);
+</script>
+
+</body>
+</html>
