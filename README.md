@@ -8,6 +8,12 @@ A one-way file transfer system that encodes any file into a stream of typed text
 
 Built for air-gapped machines, locked-down school or work computers, and VMs with no shared clipboard. If you can plug in a keyboard, you can get a file in.
 
+It was tested in a school environment of loading a word prodject dockument (file input --> phone --> Encoder html --> Ducky script(7kb chunks) --> school rpi 4 client --> win 10 session over lan --> decoder in website -- file output)
+
+I would want to add a demo gif or vid but i wont for personal reasons if someone has tested this prodject please can you make a demo vide demonstrating this prodject.
+
+used claud ai for this prodject would like to convert to fully user made.
+
 ---
 
 ## Files
